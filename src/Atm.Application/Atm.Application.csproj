@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Atm.Domain\Atm.Domain.csproj" />
+    <ProjectReference Include="..\Atm.Application.Abstractions\Atm.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\Atm.Application.Contracts\Atm.Application.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
