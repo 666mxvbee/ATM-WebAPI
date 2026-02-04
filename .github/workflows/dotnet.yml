@@ -19,6 +19,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
           cache: true
+          cache-dependency-path: '**/packages.lock.json'
 
       - name: Restore
         run: dotnet restore Atm.sln
