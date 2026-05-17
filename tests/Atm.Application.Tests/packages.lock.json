@@ -150,10 +150,7 @@
         }
       },
       "atm.application.contracts": {
-        "type": "Project",
-        "dependencies": {
-          "Atm.Domain": "[1.0.0, )"
-        }
+        "type": "Project"
       },
       "atm.domain": {
         "type": "Project"

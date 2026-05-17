@@ -1,6 +1,7 @@
 ﻿using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Contracts.Sessions.CreateAdminSession;
 using Atm.Domain.Sessions;
+using Atm.Domain.ValueObjects;
 
 namespace Atm.Application.Sessions;
 
@@ -29,9 +30,18 @@ internal sealed class CreateAdminSessionUseCase : ICreateAdminSessionPort
             return new CreateAdminSessionResult.Unauthorized("Invalid system password");
         }
 
-        var id = Guid.NewGuid();
-        _sessions.Add(new Session(id, SessionType.Admin, request.AccountNumber));
+        try
+        {
+            var accountNumber = new AccountNumber(request.AccountNumber);
+            var id = Guid.NewGuid();
 
-        return new CreateAdminSessionResult.Success(id);
+            _sessions.Add(new Session(id, SessionType.Admin, accountNumber));
+
+            return new CreateAdminSessionResult.Success(id);
+        }
+        catch(Exception ex)
+        {
+            return new CreateAdminSessionResult.Failure(ex.Message);
+        }
     }
 }

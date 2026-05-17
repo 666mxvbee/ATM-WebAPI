@@ -30,7 +30,7 @@ internal sealed class GetTransactionHistoryUseCase : IGetTransactionHistoryPort
 
         foreach (Domain.Operations.OperationRecord op in ops)
         {
-            list.Add(new TransactionDto(op.Type, op.Amount.Value, op.BalanceAfter.Value));
+            list.Add(new TransactionDto(op.Type.ToString(), op.Amount.Value, op.BalanceAfter.Value));
         }
 
         return new GetTransactionHistoryResult.Success(list);

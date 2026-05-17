@@ -1,8 +1,6 @@
-﻿using Atm.Domain.Operations;
-
-namespace Atm.Application.Contracts.Operations.GetTransactionHistory;
+﻿namespace Atm.Application.Contracts.Operations.GetTransactionHistory;
 
 public record TransactionDto(
-    OperationType Type,
+    string Type,
     decimal Amount,
     decimal BalanceAfter);

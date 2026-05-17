@@ -1,5 +1,3 @@
-﻿using Atm.Domain.ValueObjects;
+﻿namespace Atm.Application.Contracts.Sessions.CreateAdminSession;
 
-namespace Atm.Application.Contracts.Sessions.CreateAdminSession;
-
-public sealed record CreateAdminSessionRequest(string SystemPassword, AccountNumber AccountNumber);
+public sealed record CreateAdminSessionRequest(string SystemPassword, string AccountNumber);
