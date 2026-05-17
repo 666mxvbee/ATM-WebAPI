@@ -2,15 +2,6 @@
   "version": 1,
   "dependencies": {
     "net9.0": {
-      "Microsoft.AspNetCore.OpenApi": {
-        "type": "Direct",
-        "requested": "[9.0.8, )",
-        "resolved": "9.0.8",
-        "contentHash": "BwF9sQCKmvu93C/pmKxJjPhF5fFB23MEcgTsGL+7W3wKLYawS4lyFSL5/qh00IJzuADLf+1SmvxMaphbyZYqQQ==",
-        "dependencies": {
-          "Microsoft.OpenApi": "1.6.17"
-        }
-      },
       "Swashbuckle.AspNetCore": {
         "type": "Direct",
         "requested": "[6.6.2, )",
@@ -35,8 +26,8 @@
       },
       "Microsoft.OpenApi": {
         "type": "Transitive",
-        "resolved": "1.6.17",
-        "contentHash": "Le+kehlmrlQfuDFUt1zZ2dVwrhFQtKREdKBo+rexOwaCoYP0/qpgT9tLxCsZjsgR5Itk1UKPcbgO+FyaNid/bA=="
+        "resolved": "1.6.14",
+        "contentHash": "tTaBT8qjk3xINfESyOPE2rIellPvB7qpVqiWiyA/lACVvz+xOGiXhFUfohcx82NLbi5avzLW0lx+s6oAqQijfw=="
       },
       "Swashbuckle.AspNetCore.Swagger": {
         "type": "Transitive",
@@ -75,10 +66,7 @@
         }
       },
       "atm.application.contracts": {
-        "type": "Project",
-        "dependencies": {
-          "Atm.Domain": "[1.0.0, )"
-        }
+        "type": "Project"
       },
       "atm.domain": {
         "type": "Project"

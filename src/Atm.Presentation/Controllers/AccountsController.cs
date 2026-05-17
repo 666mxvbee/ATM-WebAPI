@@ -3,6 +3,7 @@ using Atm.Application.Contracts.Accounts.GetBalance;
 using Atm.Application.Contracts.Operations.Deposit;
 using Atm.Application.Contracts.Operations.GetTransactionHistory;
 using Atm.Application.Contracts.Operations.Withdraw;
+using Atm.Presentation.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Atm.Presentation.Controllers;
@@ -32,112 +33,96 @@ public sealed class AccountsController : ControllerBase
     }
 
     [HttpPost("create")]
+    [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult Create([FromBody] CreateAccountApiRequest request)
     {
-        CreateAccountResult result = _createAccount.Execute(new CreateAccountRequest(request.AdminSessionId, request.AccountNumber, request.Pin, request.InitialBalance));
+        CreateAccountResult result = _createAccount.Execute(
+            new CreateAccountRequest(
+                request.AdminSessionId,
+                request.AccountNumber,
+                request.Pin,
+                request.InitialBalance));
 
         return result switch
         {
-            CreateAccountResult.Success => Ok(new { message = "Account created successfully" }),
-            CreateAccountResult.Unauthorized u => StatusCode(401, new { error = u.ErrorMessage }),
-            CreateAccountResult.Failure f => BadRequest(new { error = f.ErrorMessage }),
-            _ => BadRequest(new { error = "Unknown result" }),
+            CreateAccountResult.Success => Ok(new MessageResponse("Account created")),
+            CreateAccountResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            CreateAccountResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
         };
     }
 
     [HttpGet("balance")]
+    [ProducesResponseType(typeof(BalanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult Balance([FromQuery(Name = "sessionId")] Guid userSessionId)
     {
-        GetBalanceResult result = _getBalance.Execute(new GetBalanceRequest(userSessionId));
-
-        if (result is GetBalanceResult.Success s)
+        GetBalanceResult result = _getBalance.Execute(
+            new GetBalanceRequest(userSessionId));
+        
+        return result switch
         {
-            return Ok(new { balance = s.Balance });
-        }
-
-        if (result is GetBalanceResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is GetBalanceResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            GetBalanceResult.Success s => Ok(new BalanceResponse(s.Balance)),
+            GetBalanceResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            GetBalanceResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
+        };
     }
 
     [HttpPost("deposit")]
+    [ProducesResponseType(typeof(BalanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult Deposit([FromBody] AmountApiRequest request)
     {
-        DepositResult result = _deposit.Execute(new DepositRequest(request.UserSessionId, request.Amount));
+        DepositResult result = _deposit.Execute(
+            new DepositRequest(request.UserSessionId, request.Amount));
 
-        if (result is DepositResult.Success s)
+        return result switch
         {
-            return Ok(new { balance = s.Balance });
-        }
-
-        if (result is DepositResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is DepositResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            DepositResult.Success s => Ok(new BalanceResponse(s.Balance)),
+            DepositResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            DepositResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
+        };
     }
 
     [HttpPost("withdraw")]
+    [ProducesResponseType(typeof(BalanceResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult Withdraw([FromBody] AmountApiRequest request)
     {
-        WithdrawResult result = _withdraw.Execute(new WithdrawRequest(request.UserSessionId, request.Amount));
+        WithdrawResult result = _withdraw.Execute(
+            new WithdrawRequest(request.UserSessionId, request.Amount));
 
-        if (result is WithdrawResult.Success s)
+        return result switch
         {
-            return Ok(new { balance = s.Balance });
-        }
-
-        if (result is WithdrawResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is WithdrawResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            WithdrawResult.Success s => Ok(new BalanceResponse(s.Balance)),
+            WithdrawResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            WithdrawResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
+        };
     }
 
     [HttpGet("history")]
-    public IActionResult History([FromQuery] Guid userSessionId)
+    [ProducesResponseType(typeof(TransactionsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public IActionResult History([FromQuery(Name = "sessionId")] Guid userSessionId)
     {
-        GetTransactionHistoryResult result = _history.Execute(new GetTransactionHistoryRequest(userSessionId));
-
-        if (result is GetTransactionHistoryResult.Success s)
+        GetTransactionHistoryResult result = _history.Execute(
+            new GetTransactionHistoryRequest(userSessionId));
+        
+        return result switch
         {
-            return Ok(new { transactions = s.Transactions });
-        }
-
-        if (result is GetTransactionHistoryResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is GetTransactionHistoryResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            GetTransactionHistoryResult.Success s => Ok(new TransactionsResponse(s.Transactions)),
+            GetTransactionHistoryResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            GetTransactionHistoryResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
+        };
     }
-
-    public sealed record CreateAccountApiRequest(Guid AdminSessionId, string AccountNumber, string Pin, decimal InitialBalance);
-
-    public sealed record AmountApiRequest(Guid UserSessionId, decimal Amount);
 }

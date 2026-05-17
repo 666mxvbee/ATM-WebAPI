@@ -1,6 +1,6 @@
 ﻿using Atm.Application.Contracts.Sessions.CreateAdminSession;
 using Atm.Application.Contracts.Sessions.CreateUserSession;
-using Atm.Domain.ValueObjects;
+using Atm.Presentation.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Atm.Presentation.Controllers;
@@ -21,64 +21,48 @@ public sealed class SessionsController : ControllerBase
     }
 
     [HttpPost("user")]
+    [ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult CreateUser([FromBody] CreateUserSessionApiRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.AccountNumber) || string.IsNullOrWhiteSpace(request.Pin))
         {
-            return BadRequest(new { error = "AccountNumber and Pin are required" });
+            return BadRequest(new ErrorResponse("AccountNumber and Pin are required"));
         }
 
-        CreateUserSessionResult result = _createUserSession.Execute(new CreateUserSessionRequest(request.AccountNumber, request.Pin));
+        CreateUserSessionResult result = _createUserSession.Execute(
+            new CreateUserSessionRequest(request.AccountNumber, request.Pin));
 
-        if (result is CreateUserSessionResult.Success s)
+        return result switch
         {
-            return Ok(new { sessionId = s.SessionId });
-        }
-
-        if (result is CreateUserSessionResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is CreateUserSessionResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            CreateUserSessionResult.Success s => Ok(new SessionResponse(s.SessionId)),
+            CreateUserSessionResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            CreateUserSessionResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown error")),
+        };
     }
 
     [HttpPost("admin")]
+    [ProducesResponseType(typeof(SessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public IActionResult CreateAdmin([FromBody] CreateAdminSessionApiRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.SystemPassword))
+        if (string.IsNullOrWhiteSpace(request.SystemPassword) || string.IsNullOrWhiteSpace(request.AccountNumber))
         {
-            return BadRequest(new { error = "SystemPassword is required" });
+            return BadRequest(new ErrorResponse("SystemPassword and AccountNumber are required"));
         }
 
-        var acc = new AccountNumber(request.AccountNumber);
+        CreateAdminSessionResult result = _createAdminSession.Execute(
+            new CreateAdminSessionRequest(request.SystemPassword, request.AccountNumber));
 
-        CreateAdminSessionResult result = _createAdminSession.Execute(new CreateAdminSessionRequest(request.SystemPassword, acc));
-
-        if (result is CreateAdminSessionResult.Success s)
+        return result switch
         {
-            return Ok(new { sessionId = s.SessionId });
-        }
-
-        if (result is CreateAdminSessionResult.Unauthorized u)
-        {
-            return StatusCode(401, new { error = u.ErrorMessage });
-        }
-
-        if (result is CreateAdminSessionResult.Failure f)
-        {
-            return BadRequest(new { error = f.ErrorMessage });
-        }
-
-        return BadRequest(new { error = "Unknown result" });
+            CreateAdminSessionResult.Success s => Ok(new SessionResponse(s.SessionId)),
+            CreateAdminSessionResult.Unauthorized u => Unauthorized(new ErrorResponse(u.ErrorMessage)),
+            CreateAdminSessionResult.Failure f => BadRequest(new ErrorResponse(f.ErrorMessage)),
+            _ => BadRequest(new ErrorResponse("Unknown result")),
+        };
     }
-
-    public sealed record CreateUserSessionApiRequest(string AccountNumber, string Pin);
-
-    public sealed record CreateAdminSessionApiRequest(string SystemPassword, string AccountNumber);
 }
