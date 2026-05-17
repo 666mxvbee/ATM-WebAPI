@@ -1,37 +1,43 @@
 # ATM [Hexagonal Architecture]
 
-Реализация системы банкомата с Web API интерфейсом (ASP.NET Controllers) и in-memory хранилищем.
+Implementation of an ATM system with a Web API interface using ASP.NET Controllers and in-memory storage.
 
-## Функциональность
-- создание сессии пользователя (AccountNumber + PIN)
-- создание сессии администратора (SystemPassword + AccountNumber)
-- создание счёта (только через admin session)
-- просмотр баланса
-- пополнение счёта
-- снятие денег
-- просмотр истории операций
+## Functionality
 
-Любая операция со счётом создаёт запись в истории.
+- creating a user session using AccountNumber + PIN
+- creating an administrator session using SystemPassword + AccountNumber
+- creating an account, available only through an admin session
+- viewing the account balance
+- depositing money into an account
+- withdrawing money
+- viewing transaction history
 
-## Архитектура
-Проект построен по гексагональному подходу:
-- **Domain** — доменная модель и value objects
-- **Application** — бизнес-логика/юзкейсы (порты)
-- **Application.Abstractions** — абстракции (репозитории, провайдеры и т.п.)
-- **Application.Contracts** — контракты запросов/ответов и результаты операций
-- **Infrastructure** — реализации абстракций (in-memory репозитории), регистрация DI
-- **Presentation** — ASP.NET Web API (Controllers), маппинг HTTP → порты
+Any account-related operation creates a record in the transaction history.
 
-Связывание слоёв выполнено через `Microsoft.Extensions.DependencyInjection`.
-Каждый модуль предоставляет методы расширения для регистрации зависимостей:
+## Architecture
+
+The project follows the hexagonal architecture approach:
+
+- **Domain** — domain model and value objects
+- **Application** — business logic / use cases through ports
+- **Application.Abstractions** — abstractions such as repositories, providers, and similar components
+- **Application.Contracts** — request/response contracts and operation results
+- **Infrastructure** — implementations of abstractions, including in-memory repositories, and DI registration
+- **Presentation** — ASP.NET Web API Controllers and HTTP-to-port mapping
+
+The layers are connected using `Microsoft.Extensions.DependencyInjection`.
+
+Each module provides extension methods for dependency registration:
+
 - `builder.Services.AddApplication();`
 - `builder.Services.AddInfrastructure();`
 
-## Конфигурация системного пароля
-Системный пароль читается через `ISystemPasswordProvider` (реализация в `Atm.Presentation.Common.SystemPasswordProvider`)
-и берётся из конфигурации:
+## System Password Configuration
+
+The system password is read through `ISystemPasswordProvider`, implemented in `Atm.Presentation.Common.SystemPasswordProvider`, and is taken from the configuration.
 
 `appsettings.json`:
+
 ```json
 {
   "SystemAuth": {
