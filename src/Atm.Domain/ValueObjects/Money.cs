@@ -1,13 +1,13 @@
-﻿namespace Atm.Domain.ValueObjects;
+using Atm.Domain.Common;
+
+namespace Atm.Domain.ValueObjects;
 
 public sealed class Money
 {
     public Money(decimal value)
     {
-        if (value < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(value), value, "Value must be greater than zero.");
-        }
+        if (value < 0m || !DomainRules.HasScale(value, 4))
+            throw new ArgumentException("Money must be non-negative with at most four decimal places.", nameof(value));
 
         Value = value;
     }
@@ -16,16 +16,13 @@ public sealed class Money
 
     public Money Add(Amount amount)
     {
-        return new Money(Value + amount.Value);
+        return new Money(DomainRules.AddExact(Value, amount.Value));
     }
 
     public Money Subtract(Amount amount)
     {
         if (Value < amount.Value)
-        {
-            throw new InvalidOperationException("Cannot subtract from non-overflow.");
-        }
-
-        return new Money(Value - amount.Value);
+            throw new InvalidOperationException("Not enough balance.");
+        return new Money(DomainRules.SubtractExact(Value, amount.Value));
     }
 }
