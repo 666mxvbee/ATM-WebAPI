@@ -1,4 +1,4 @@
-﻿using Atm.Application.Contracts.Accounts.CreateAccount;
+using Atm.Application.Contracts.Accounts.CreateAccount;
 using Atm.Application.Contracts.Accounts.GetBalance;
 using Atm.Application.Contracts.Operations.Deposit;
 using Atm.Application.Contracts.Operations.GetTransactionHistory;
@@ -43,7 +43,8 @@ public sealed class AccountsController : ControllerBase
                 request.AdminSessionId,
                 request.AccountNumber,
                 request.Pin,
-                request.InitialBalance));
+                request.InitialBalance,
+                request.OwnerUserId));
 
         return result switch
         {
@@ -62,7 +63,7 @@ public sealed class AccountsController : ControllerBase
     {
         GetBalanceResult result = _getBalance.Execute(
             new GetBalanceRequest(userSessionId));
-        
+
         return result switch
         {
             GetBalanceResult.Success s => Ok(new BalanceResponse(s.Balance)),
@@ -116,7 +117,7 @@ public sealed class AccountsController : ControllerBase
     {
         GetTransactionHistoryResult result = _history.Execute(
             new GetTransactionHistoryRequest(userSessionId));
-        
+
         return result switch
         {
             GetTransactionHistoryResult.Success s => Ok(new TransactionsResponse(s.Transactions)),

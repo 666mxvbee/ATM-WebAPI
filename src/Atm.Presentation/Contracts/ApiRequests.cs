@@ -6,7 +6,8 @@ public sealed record CreateAccountApiRequest(
     [property: JsonPropertyName("adminSessionId")] Guid AdminSessionId,
     [property: JsonPropertyName("accountNumber")] string AccountNumber,
     [property: JsonPropertyName("pin")] string Pin,
-    [property: JsonPropertyName("initialBalance")] decimal InitialBalance);
+    [property: JsonPropertyName("initialBalance")] decimal InitialBalance,
+    [property: JsonPropertyName("ownerUserId")] Guid OwnerUserId);
 
 public sealed record AmountApiRequest(
     [property: JsonPropertyName("userSessionId")] Guid UserSessionId,

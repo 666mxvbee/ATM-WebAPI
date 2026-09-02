@@ -1,4 +1,5 @@
-﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Security;
 using Atm.Application.Contracts.Sessions.CreateUserSession;
 using Atm.Domain.Sessions;
 using Atm.Domain.ValueObjects;
@@ -9,11 +10,13 @@ internal sealed class CreateUserSessionUseCase : ICreateUserSessionPort
 {
     private readonly ISessionRepository _sessions;
     private readonly IAccountRepository _accounts;
+    private readonly IPinHasher _pinHasher;
 
-    public CreateUserSessionUseCase(ISessionRepository sessions, IAccountRepository accounts)
+    public CreateUserSessionUseCase(ISessionRepository sessions, IAccountRepository accounts, IPinHasher pinHasher)
     {
         _sessions = sessions;
         _accounts = accounts;
+        _pinHasher = pinHasher;
     }
 
     public CreateUserSessionResult Execute(CreateUserSessionRequest request)
@@ -24,7 +27,7 @@ internal sealed class CreateUserSessionUseCase : ICreateUserSessionPort
             var pin = new PinCode(request.Pin);
             Domain.Accounts.Account? acc = _accounts.GetByNumber(number);
 
-            if (acc is null || acc.Pin.Value != pin.Value)
+            if (acc is null || !_pinHasher.Verify(acc.PinHash, pin))
             {
                 return new CreateUserSessionResult.Unauthorized("Invalid credentials");
             }
@@ -36,7 +39,7 @@ internal sealed class CreateUserSessionUseCase : ICreateUserSessionPort
 
             return new CreateUserSessionResult.Success(id);
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
             return new CreateUserSessionResult.Failure(ex.Message);
         }

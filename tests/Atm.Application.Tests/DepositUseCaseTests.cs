@@ -1,4 +1,4 @@
-﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Common;
 using Atm.Application.Contracts.Operations.Deposit;
 using Atm.Application.Operations;
@@ -24,11 +24,11 @@ public sealed class DepositUseCaseTests
 
         sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
 
-        var account = new Account(accountNumber, new PinCode("1234"), new Money(100m));
+        Account account = BankingTestData.CreateAccount(accountNumber, 100m);
         accounts.GetByNumber(accountNumber).Returns(account);
 
         var auth = new SessionAuthorizer(sessions);
-        var useCase = new DepositUseCase(accounts, operations, auth);
+        var useCase = new DepositUseCase(accounts, operations, auth, new FixedClock());
 
         DepositResult result = useCase.Execute(new DepositRequest(sessionId, 50m));
 

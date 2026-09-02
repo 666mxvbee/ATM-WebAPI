@@ -1,4 +1,5 @@
-﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Time;
 using Atm.Application.Common;
 using Atm.Application.Contracts.Operations.Withdraw;
 using Atm.Domain.Operations;
@@ -11,12 +12,14 @@ public sealed class WithdrawUseCase : IWithdrawPort
     private readonly IAccountRepository _accounts;
     private readonly IOperationRepository _operations;
     private readonly SessionAuthorizer _auth;
+    private readonly IClock _clock;
 
-    public WithdrawUseCase(IAccountRepository accounts, IOperationRepository operations, SessionAuthorizer auth)
+    public WithdrawUseCase(IAccountRepository accounts, IOperationRepository operations, SessionAuthorizer auth, IClock clock)
     {
         _accounts = accounts;
         _operations = operations;
         _auth = auth;
+        _clock = clock;
     }
 
     public WithdrawResult Execute(WithdrawRequest request)
@@ -41,12 +44,12 @@ public sealed class WithdrawUseCase : IWithdrawPort
         {
             amount = new Amount(request.Amount);
         }
-        catch (Exception e)
+        catch (ArgumentException e)
         {
             return new WithdrawResult.Failure(e.Message);
         }
 
-        Domain.Accounts.Results.WithdrawResult domainResult = acc.Withdraw(amount);
+        Domain.Accounts.Results.WithdrawResult domainResult = acc.Withdraw(amount, _clock.UtcNow);
         if (domainResult is Domain.Accounts.Results.WithdrawResult.Failure result)
         {
             return new WithdrawResult.Failure(result.ErrorMessage);

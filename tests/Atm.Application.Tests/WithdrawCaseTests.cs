@@ -1,4 +1,4 @@
-﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Common;
 using Atm.Application.Contracts.Operations.Withdraw;
 using Atm.Application.Operations;
@@ -24,11 +24,11 @@ public sealed class WithdrawCaseTests
 
         sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
 
-        var account = new Account(accountNumber, new PinCode("6666"), new Money(100m));
+        Account account = BankingTestData.CreateAccount(accountNumber, 100m);
         accounts.GetByNumber(accountNumber).Returns(account);
 
         var auth = new SessionAuthorizer(sessions);
-        var useCase = new WithdrawUseCase(accounts, operations, auth);
+        var useCase = new WithdrawUseCase(accounts, operations, auth, new FixedClock());
 
         WithdrawResult result = useCase.Execute(new WithdrawRequest(sessionId, 40m));
 
@@ -56,11 +56,11 @@ public sealed class WithdrawCaseTests
 
         sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
 
-        var account = new Account(accountNumber, new PinCode("9999"), new Money(10m));
+        Account account = BankingTestData.CreateAccount(accountNumber, 10m);
         accounts.GetByNumber(accountNumber).Returns(account);
 
         var auth = new SessionAuthorizer(sessions);
-        var useCase = new WithdrawUseCase(accounts, operations, auth);
+        var useCase = new WithdrawUseCase(accounts, operations, auth, new FixedClock());
 
         WithdrawResult result = useCase.Execute(new WithdrawRequest(sessionId, 20m));
 

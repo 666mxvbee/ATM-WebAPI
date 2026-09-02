@@ -1,4 +1,5 @@
-﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Time;
 using Atm.Application.Common;
 using Atm.Application.Contracts.Operations.Deposit;
 using Atm.Domain.Operations;
@@ -11,12 +12,14 @@ public sealed class DepositUseCase : IDepositPort
     private readonly IAccountRepository _accounts;
     private readonly IOperationRepository _operations;
     private readonly SessionAuthorizer _auth;
+    private readonly IClock _clock;
 
-    public DepositUseCase(IAccountRepository accounts, IOperationRepository operations, SessionAuthorizer auth)
+    public DepositUseCase(IAccountRepository accounts, IOperationRepository operations, SessionAuthorizer auth, IClock clock)
     {
         _accounts = accounts;
         _operations = operations;
         _auth = auth;
+        _clock = clock;
     }
 
     public DepositResult Execute(DepositRequest request)
@@ -41,12 +44,12 @@ public sealed class DepositUseCase : IDepositPort
         {
             amount = new Amount(request.Amount);
         }
-        catch (Exception e)
+        catch (ArgumentException e)
         {
             return new DepositResult.Failure(e.Message);
         }
 
-        Domain.Accounts.Results.DepositResult domainResult = acc.Deposit(amount);
+        Domain.Accounts.Results.DepositResult domainResult = acc.Deposit(amount, _clock.UtcNow);
 
         if (domainResult is Domain.Accounts.Results.DepositResult.Failure f)
         {
