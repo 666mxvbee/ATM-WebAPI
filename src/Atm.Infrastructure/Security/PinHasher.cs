@@ -17,7 +17,6 @@ public sealed class PinHasher : IPinHasher
     {
         try
         {
-            // Both Success and SuccessRehashNeeded mean the PIN is valid.
             return _hasher.VerifyHashedPassword(this, hash.Value, pin.Value)
                 != PasswordVerificationResult.Failed;
         }

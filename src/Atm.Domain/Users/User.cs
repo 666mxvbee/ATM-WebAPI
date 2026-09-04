@@ -6,7 +6,6 @@ namespace Atm.Domain.Users;
 
 public sealed class User
 {
-    // Public construction is validated by Create; private setters also allow ORM materialization.
     private User() { }
 
     public Guid Id { get; private set; }

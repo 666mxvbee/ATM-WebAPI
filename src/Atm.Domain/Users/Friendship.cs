@@ -21,7 +21,6 @@ public sealed class Friendship
         if (!DomainRules.IsUtc(createdAtUtc))
             return new FriendshipCreationResult.Failure("Created timestamp must be UTC.");
 
-        // Canonical hexadecimal order matches UUID byte order, not Guid.ToByteArray's little-endian layout.
         bool firstIsSmaller = string.CompareOrdinal(firstUserId.ToString("N"), secondUserId.ToString("N")) < 0;
         return new FriendshipCreationResult.Success(new Friendship
         {

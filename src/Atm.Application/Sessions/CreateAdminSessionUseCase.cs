@@ -37,7 +37,6 @@ internal sealed class CreateAdminSessionUseCase : ICreateAdminSessionPort
 
         try
         {
-            // Kept only for backward compatibility with the current HTTP contract.
             _ = new AccountNumber(request.AccountNumber);
         }
         catch (ArgumentException exception)
