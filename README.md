@@ -145,7 +145,13 @@ dotnet build Atm.sln -c Release --no-restore
 dotnet test Atm.sln -c Release --no-build
 ```
 
-Unit tests create mocks or focused test objects directly and do not build the production DI container or start a database.
+Tests are separated by architectural layer:
+
+- `Atm.Domain.Tests` validates value objects, entities, invariants, commissions, and history calculations;
+- `Atm.Application.Tests` validates use cases, authorization, and application orchestration through ports;
+- `Atm.Infrastructure.Tests` validates concrete infrastructure adapters such as `PinHasher`.
+
+Each test project references only the production layer it is intended to test. Unit tests create mocks or focused test objects directly and do not build the production DI container or start a database.
 
 ## Transitional limitations
 

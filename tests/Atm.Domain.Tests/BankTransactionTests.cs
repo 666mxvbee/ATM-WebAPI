@@ -2,7 +2,7 @@ using Atm.Domain.Operations;
 using Atm.Domain.Operations.Results;
 using Atm.Domain.ValueObjects;
 
-namespace Atm.Application.Tests;
+namespace Atm.Domain.Tests;
 
 public sealed class BankTransactionTests
 {

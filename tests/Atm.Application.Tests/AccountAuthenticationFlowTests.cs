@@ -1,4 +1,5 @@
 using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Abstractions.Security;
 using Atm.Application.Accounts;
 using Atm.Application.Common;
 using Atm.Application.Contracts.Accounts.CreateAccount;
@@ -7,7 +8,6 @@ using Atm.Application.Sessions;
 using Atm.Domain.Accounts;
 using Atm.Domain.Sessions;
 using Atm.Domain.ValueObjects;
-using Atm.Infrastructure.Security;
 using Microsoft.Extensions.Options;
 
 namespace Atm.Application.Tests;
@@ -20,7 +20,7 @@ public sealed class AccountAuthenticationFlowTests
         var accounts = new TestAccountRepository();
         var sessions = new TestSessionRepository();
         var clock = new FixedClock();
-        var hasher = new PinHasher();
+        var hasher = new TestPinHasher();
         var adminSessionId = Guid.NewGuid();
         var ownerUserId = Guid.NewGuid();
         sessions.Add(BankingTestData.CreateAdminSession(adminSessionId, clock));
@@ -92,6 +92,23 @@ public sealed class AccountAuthenticationFlowTests
         public void Add(Session session)
         {
             _sessions.Add(session.Id, session);
+        }
+    }
+
+    private sealed class TestPinHasher : IPinHasher
+    {
+        private readonly Dictionary<string, string> _pinsByHash = new();
+
+        public PinHash Hash(PinCode pin)
+        {
+            var hash = new PinHash($"test-hash-{Guid.NewGuid():N}");
+            _pinsByHash.Add(hash.Value, pin.Value);
+            return hash;
+        }
+
+        public bool Verify(PinHash hash, PinCode pin)
+        {
+            return _pinsByHash.GetValueOrDefault(hash.Value) == pin.Value;
         }
     }
 }

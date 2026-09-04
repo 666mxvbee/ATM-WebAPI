@@ -1,7 +1,7 @@
 using Atm.Domain.ValueObjects;
 using System.Globalization;
 
-namespace Atm.Application.Tests;
+namespace Atm.Domain.Tests;
 
 public sealed class ValueObjectTests
 {

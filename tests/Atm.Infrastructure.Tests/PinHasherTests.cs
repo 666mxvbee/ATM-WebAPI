@@ -1,7 +1,7 @@
 using Atm.Domain.ValueObjects;
 using Atm.Infrastructure.Security;
 
-namespace Atm.Application.Tests;
+namespace Atm.Infrastructure.Tests;
 
 public class PinHasherTests
 {

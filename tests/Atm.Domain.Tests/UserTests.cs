@@ -2,7 +2,7 @@ using Atm.Domain.Users;
 using Atm.Domain.Users.Results;
 using Atm.Domain.ValueObjects;
 
-namespace Atm.Application.Tests;
+namespace Atm.Domain.Tests;
 
 public sealed class UserTests
 {

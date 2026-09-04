@@ -2,7 +2,7 @@ using Atm.Domain.Accounts;
 using Atm.Domain.Accounts.Results;
 using Atm.Domain.ValueObjects;
 
-namespace Atm.Application.Tests;
+namespace Atm.Domain.Tests;
 
 public class AccountTests
 {
@@ -11,18 +11,18 @@ public class AccountTests
     {
         var number = new AccountNumber("test");
         var hash = new PinHash("test-only-hash");
-        var clock = new FixedClock();
+        DateTimeOffset now = DomainTestData.UtcNow;
 
         Assert.IsType<AccountCreationResult.Failure>(Account.Create(
-            Guid.NewGuid(), number, Guid.Empty, hash, new Money(0m), clock.UtcNow));
+            Guid.NewGuid(), number, Guid.Empty, hash, new Money(0m), now));
         Assert.IsType<AccountCreationResult.Failure>(Account.Create(
-            Guid.NewGuid(), number, Guid.NewGuid(), hash, new Money(0m), clock.UtcNow.ToOffset(TimeSpan.FromHours(3))));
+            Guid.NewGuid(), number, Guid.NewGuid(), hash, new Money(0m), now.ToOffset(TimeSpan.FromHours(3))));
     }
 
     [Fact]
     public void SuccessfulChangesAdvanceTheVersionAndTimestamp()
     {
-        Account account = BankingTestData.CreateAccount(new AccountNumber("test"), 100m);
+        Account account = DomainTestData.CreateAccount(new AccountNumber("test"), 100m);
         DateTimeOffset now = account.CreatedAtUtc.AddMinutes(1);
 
         Assert.IsType<DepositResult.Success>(account.Deposit(new Amount(10m), now));
@@ -36,7 +36,7 @@ public class AccountTests
     [Fact]
     public void FailedChangesDoNotMutateTheAccount()
     {
-        Account account = BankingTestData.CreateAccount(new AccountNumber("test"), 100m);
+        Account account = DomainTestData.CreateAccount(new AccountNumber("test"), 100m);
         DateTimeOffset now = account.CreatedAtUtc;
 
         Assert.IsType<WithdrawResult.Failure>(account.Withdraw(new Amount(101m), now));
@@ -49,11 +49,11 @@ public class AccountTests
     [Fact]
     public void LargeBalancesHaveNoBusinessCeilingButCannotLosePrecision()
     {
-        Account account = BankingTestData.CreateAccount(new AccountNumber("large"), 1000000000000000m);
+        Account account = DomainTestData.CreateAccount(new AccountNumber("large"), 1000000000000000m);
         Assert.IsType<DepositResult.Success>(account.Deposit(new Amount(1m), account.CreatedAtUtc));
         Assert.Equal(1000000000000001m, account.Balance.Value);
 
-        Account largest = BankingTestData.CreateAccount(new AccountNumber("largest"), decimal.MaxValue);
+        Account largest = DomainTestData.CreateAccount(new AccountNumber("largest"), decimal.MaxValue);
         Assert.IsType<DepositResult.Failure>(largest.Deposit(new Amount(1m), largest.CreatedAtUtc));
         Assert.IsType<DepositResult.Failure>(largest.Deposit(new Amount(0.0001m), largest.CreatedAtUtc));
         Assert.IsType<WithdrawResult.Failure>(largest.Withdraw(new Amount(0.0001m), largest.CreatedAtUtc));
