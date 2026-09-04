@@ -197,7 +197,8 @@
           "Atm.Application.Abstractions": "[1.0.0, )",
           "Atm.Application.Contracts": "[1.0.0, )",
           "Atm.Domain": "[1.0.0, )",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "[9.0.19, )"
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "[9.0.19, )",
+          "Microsoft.Extensions.Options": "[9.0.19, )"
         }
       },
       "atm.application.abstractions": {

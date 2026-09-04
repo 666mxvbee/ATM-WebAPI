@@ -4,7 +4,6 @@ using Atm.Application.Contracts.Operations.Withdraw;
 using Atm.Application.Operations;
 using Atm.Domain.Accounts;
 using Atm.Domain.Operations;
-using Atm.Domain.Sessions;
 using Atm.Domain.ValueObjects;
 using NSubstitute;
 
@@ -18,30 +17,27 @@ public sealed class WithdrawCaseTests
         IAccountRepository accounts = Substitute.For<IAccountRepository>();
         ISessionRepository sessions = Substitute.For<ISessionRepository>();
         IOperationRepository operations = Substitute.For<IOperationRepository>();
-
+        var clock = new FixedClock();
         var accountNumber = new AccountNumber("aboba-2");
         var sessionId = Guid.NewGuid();
-
-        sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
-
         Account account = BankingTestData.CreateAccount(accountNumber, 100m);
-        accounts.GetByNumber(accountNumber).Returns(account);
 
-        var auth = new SessionAuthorizer(sessions);
-        var useCase = new WithdrawUseCase(accounts, operations, auth, new FixedClock());
+        sessions.GetById(sessionId).Returns(BankingTestData.CreateUserSession(sessionId, account, clock));
+        accounts.GetById(account.Id).Returns(account);
+
+        var auth = new SessionAuthorizer(sessions, clock);
+        var useCase = new WithdrawUseCase(accounts, operations, auth, clock);
 
         WithdrawResult result = useCase.Execute(new WithdrawRequest(sessionId, 40m));
 
         Assert.IsType<WithdrawResult.Success>(result);
         Assert.Equal(60m, ((WithdrawResult.Success)result).Balance);
-
-        accounts.Received(1).Update(Arg.Is<Account>(a => a.Balance.Value == 60m));
-
-        operations.Received(1).Add(Arg.Is<OperationRecord>(op =>
-            op.AccountNumber == accountNumber &&
-            op.Type == OperationType.Withdraw &&
-            op.Amount.Value == 40m &&
-            op.BalanceAfter.Value == 60m));
+        accounts.Received(1).Update(Arg.Is<Account>(item => item.Balance.Value == 60m));
+        operations.Received(1).Add(Arg.Is<OperationRecord>(operation =>
+            operation.AccountNumber == accountNumber &&
+            operation.Type == OperationType.Withdraw &&
+            operation.Amount.Value == 40m &&
+            operation.BalanceAfter.Value == 60m));
     }
 
     [Fact]
@@ -50,17 +46,16 @@ public sealed class WithdrawCaseTests
         IAccountRepository accounts = Substitute.For<IAccountRepository>();
         ISessionRepository sessions = Substitute.For<ISessionRepository>();
         IOperationRepository operations = Substitute.For<IOperationRepository>();
-
+        var clock = new FixedClock();
         var accountNumber = new AccountNumber("aboba-666");
         var sessionId = Guid.NewGuid();
-
-        sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
-
         Account account = BankingTestData.CreateAccount(accountNumber, 10m);
-        accounts.GetByNumber(accountNumber).Returns(account);
 
-        var auth = new SessionAuthorizer(sessions);
-        var useCase = new WithdrawUseCase(accounts, operations, auth, new FixedClock());
+        sessions.GetById(sessionId).Returns(BankingTestData.CreateUserSession(sessionId, account, clock));
+        accounts.GetById(account.Id).Returns(account);
+
+        var auth = new SessionAuthorizer(sessions, clock);
+        var useCase = new WithdrawUseCase(accounts, operations, auth, clock);
 
         WithdrawResult result = useCase.Execute(new WithdrawRequest(sessionId, 20m));
 

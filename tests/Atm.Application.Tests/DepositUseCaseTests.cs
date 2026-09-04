@@ -4,7 +4,6 @@ using Atm.Application.Contracts.Operations.Deposit;
 using Atm.Application.Operations;
 using Atm.Domain.Accounts;
 using Atm.Domain.Operations;
-using Atm.Domain.Sessions;
 using Atm.Domain.ValueObjects;
 using NSubstitute;
 
@@ -18,29 +17,26 @@ public sealed class DepositUseCaseTests
         IAccountRepository accounts = Substitute.For<IAccountRepository>();
         ISessionRepository sessions = Substitute.For<ISessionRepository>();
         IOperationRepository operations = Substitute.For<IOperationRepository>();
-
+        var clock = new FixedClock();
         var accountNumber = new AccountNumber("aboba");
         var sessionId = Guid.NewGuid();
-
-        sessions.GetById(sessionId).Returns(new Session(sessionId, SessionType.User, accountNumber));
-
         Account account = BankingTestData.CreateAccount(accountNumber, 100m);
-        accounts.GetByNumber(accountNumber).Returns(account);
 
-        var auth = new SessionAuthorizer(sessions);
-        var useCase = new DepositUseCase(accounts, operations, auth, new FixedClock());
+        sessions.GetById(sessionId).Returns(BankingTestData.CreateUserSession(sessionId, account, clock));
+        accounts.GetById(account.Id).Returns(account);
+
+        var auth = new SessionAuthorizer(sessions, clock);
+        var useCase = new DepositUseCase(accounts, operations, auth, clock);
 
         DepositResult result = useCase.Execute(new DepositRequest(sessionId, 50m));
 
         Assert.IsType<DepositResult.Success>(result);
         Assert.Equal(150m, ((DepositResult.Success)result).Balance);
-
-        accounts.Received(1).Update(Arg.Is<Account>(a => a.Balance.Value == 150m));
-
-        operations.Received(1).Add(Arg.Is<OperationRecord>(op =>
-            op.AccountNumber == accountNumber &&
-            op.Type == OperationType.Deposit &&
-            op.Amount.Value == 50m &&
-            op.BalanceAfter.Value == 150m));
+        accounts.Received(1).Update(Arg.Is<Account>(item => item.Balance.Value == 150m));
+        operations.Received(1).Add(Arg.Is<OperationRecord>(operation =>
+            operation.AccountNumber == accountNumber &&
+            operation.Type == OperationType.Deposit &&
+            operation.Amount.Value == 50m &&
+            operation.BalanceAfter.Value == 150m));
     }
 }

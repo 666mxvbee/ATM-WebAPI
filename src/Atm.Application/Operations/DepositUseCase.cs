@@ -32,7 +32,7 @@ public sealed class DepositUseCase : IDepositPort
         }
 
         var user = (AuthorizationResult.UserSuccess)auth;
-        Domain.Accounts.Account? acc = _accounts.GetByNumber(user.AccountNumber);
+        Domain.Accounts.Account? acc = _accounts.GetById(user.AccountId);
 
         if (acc is null)
         {
@@ -57,7 +57,7 @@ public sealed class DepositUseCase : IDepositPort
         }
 
         _accounts.Update(acc);
-        _operations.Add(new OperationRecord(Guid.NewGuid(), user.AccountNumber, OperationType.Deposit, amount, acc.Balance));
+        _operations.Add(new OperationRecord(Guid.NewGuid(), acc.Number, OperationType.Deposit, amount, acc.Balance));
 
         return new DepositResult.Success(acc.Balance.Value);
     }
