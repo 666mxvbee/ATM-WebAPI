@@ -2,7 +2,7 @@
 
 An ATM training project built with .NET 9, ASP.NET Core Controllers, and hexagonal architecture.
 
-Database stage 1 is currently in progress. Microstages 13.1 and 13.2 are implemented; runtime repositories are still temporary in-memory adapters until the EF Core repositories replace them in microstage 13.9.
+Database stage 1 is currently in progress. Microstages 13.1 through 13.3 are implemented; runtime repositories are still temporary in-memory adapters until the EF Core repositories replace them in microstage 13.9.
 
 ## Current functionality
 
@@ -35,7 +35,7 @@ Business operations that can normally be accepted or rejected use a dedicated re
 
 Amounts use .NET `decimal` and allow at most four fractional digits. There is no artificial `numeric(19,4)` business ceiling: for example, values above `1_000_000_000_000_000` are valid.
 
-This does not mean infinite precision. Values must still fit in `decimal`, and arithmetic is rejected when it would overflow or silently lose a small amount near the representable boundary. Future PostgreSQL mappings use unconstrained `numeric` with scale checks instead of `numeric(19,4)`.
+This does not mean infinite precision. Values must still fit in `decimal`, and arithmetic is rejected when it would overflow or silently lose a small amount near the representable boundary. PostgreSQL mappings use `numeric` without a precision declaration. Check constraints enforce at most four fractional digits and a coefficient representable by .NET decimal, including for external writes.
 
 Commission snapshots retain the applied rate, fixed component, and calculated commission. The formula is:
 
@@ -149,15 +149,46 @@ Tests are separated by architectural layer:
 
 - `Atm.Domain.Tests` validates value objects, entities, invariants, commissions, and history calculations;
 - `Atm.Application.Tests` validates use cases, authorization, and application orchestration through ports;
-- `Atm.Infrastructure.Tests` validates concrete infrastructure adapters such as `PinHasher`.
+- `Atm.Infrastructure.Tests` validates concrete infrastructure adapters, EF metadata, PostgreSQL SQL generation, materialization, change tracking, financial write guards, and the design-time factory.
 
 Each test project references only the production layer it is intended to test. Unit tests create mocks or focused test objects directly and do not build the production DI container or start a database.
+
+## EF model and design-time tools (13.3)
+
+`AtmDbContext` and six separate configurations are in `src/Atm.Infrastructure/Persistence`. The model maps the six tables from the specification in the `public` schema with explicit snake_case names, primary keys, foreign keys, checks, and indexes.
+
+`UserLogin`, `AccountNumber`, and `CommissionSnapshot` use owned mappings within their owners' tables. Normalization is computed by the existing domain constructors, with unique indexes and PostgreSQL `C` collation on the normalized columns. `Money`, `Amount`, and `PinHash` use value conversions; monetary objects have value comparers for change tracking. The shared account-number mapping also includes the account version concurrency column.
+
+`SaveChanges` and `SaveChangesAsync` reject tracked updates or deletes of persisted transactions, commission snapshots, and history, as well as physical deletion of accounts. These guards apply to tracked saves; future repository APIs and database permissions must also prevent bulk SQL from bypassing the financial write policy.
+
+The design-time factory reads `ConnectionStrings__AtmDatabase` from the environment. Supply Host, Database, and any required authentication through your local environment or secret tooling. The factory has no fallback credentials and does not include connection values in validation errors. It creates a context without opening a connection.
+
+After configuring that variable, inspect the model without applying a migration:
+
+```powershell
+dotnet tool restore
+dotnet ef dbcontext list --project src/Atm.Infrastructure --startup-project src/Atm.Presentation
+dotnet ef dbcontext script --project src/Atm.Infrastructure --startup-project src/Atm.Presentation
+```
+
+The script command generates SQL only. It is not a migration or a deployment step. Model tests exercise the actual Npgsql provider without executing SQL against a database; applying constraints and round-tripping data on PostgreSQL remain part of the migration and integration-test microstages.
+
+## Review of 13.2
+
+The review accompanying 13.3 checked the domain entities, UUIDs, owner references, normalization, session lifecycle, monetary invariants, commission snapshots, and history shape against the specification.
+
+Two defects were fixed with domain regression tests:
+
+- an absent transaction side now requires `null`; `Guid.Empty` is rejected for the source of a deposit or target of a withdrawal;
+- commission multiplication detects unrepresentable intermediate results before the explicit four-place rounding, including `decimal.MaxValue * 0.5m`.
+
+The domain remains independent of EF Core. User existence, request-ID uniqueness, atomic operations, and concurrent database writes require the later persistence/use-case stages; the review does not claim those features already work in the temporary runtime.
 
 ## Transitional limitations
 
 The following stage-1 work is not yet complete:
 
-- `AtmDbContext`, mappings, migration, and PostgreSQL repositories;
+- initial migration and PostgreSQL repositories;
 - asynchronous persistence ports and cancellation tokens;
 - atomic balance/transaction/history commits;
 - database-backed idempotency and concurrency handling;
