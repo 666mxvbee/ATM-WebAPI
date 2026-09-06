@@ -102,8 +102,8 @@ public sealed class BankTransaction
 
         return type switch
         {
-            BankTransactionType.Deposit when !hasSource && hasTarget => null,
-            BankTransactionType.Withdrawal when hasSource && !hasTarget => null,
+            BankTransactionType.Deposit when sourceAccountId is null && hasTarget => null,
+            BankTransactionType.Withdrawal when hasSource && targetAccountId is null => null,
             BankTransactionType.Transfer when hasSource && hasTarget && sourceAccountId != targetAccountId => null,
             _ => "Source and target accounts do not match the transaction type.",
         };

@@ -137,6 +137,30 @@ public sealed class BankTransactionTests
             AccountHistoryEntry.Create(Guid.NewGuid(), transaction, Guid.NewGuid(), new Money(100m)));
     }
 
+    [Theory]
+    [InlineData(BankTransactionType.Deposit)]
+    [InlineData(BankTransactionType.Withdrawal)]
+    public void AbsentAccountMustBeNull(BankTransactionType type)
+    {
+        var amount = new Amount(10m);
+        var commission = new CommissionSnapshot(amount, 0m, 0m);
+        Guid? source = type == BankTransactionType.Deposit ? Guid.Empty : Guid.NewGuid();
+        Guid? target = type == BankTransactionType.Withdrawal ? Guid.Empty : Guid.NewGuid();
+
+        Assert.IsType<BankTransactionCreationResult.Failure>(BankTransaction.Create(
+            Guid.NewGuid(), Guid.NewGuid(), type, source, target, amount, commission, Now));
+    }
+
+    [Fact]
+    public void CommissionRejectsPrecisionLossBeforeExplicitRounding()
+    {
+        Assert.Throws<OverflowException>(() =>
+            new CommissionSnapshot(new Amount(decimal.MaxValue), 0.5m, 0m));
+        var snapshot = new CommissionSnapshot(new Amount(1_234_567.1234m), 0.123456m, 0.01m);
+        Assert.Equal(decimal.Round((1_234_567.1234m * 0.123456m) + 0.01m, 4,
+            MidpointRounding.ToEven), snapshot.CommissionAmount.Value);
+    }
+
     private static BankTransaction CreateTransaction(
         BankTransactionType type,
         Guid? source,

@@ -14,7 +14,12 @@ public sealed class CommissionSnapshot
             throw new ArgumentException("Commission rate must be between zero and one with at most six decimal places.", nameof(rate));
 
         var fixedMoney = new Money(fixedAmount);
-        decimal proportional = checked(operationAmount.Value * rate);
+        decimal rateUnits = rate * 1_000_000m;
+        decimal whole = decimal.Truncate(operationAmount.Value / 1_000_000m);
+        decimal remainder = operationAmount.Value % 1_000_000m;
+        decimal proportional = DomainRules.AddExact(
+            checked(whole * rateUnits),
+            remainder * rateUnits / 1_000_000m);
         decimal unrounded = DomainRules.AddExact(proportional, fixedMoney.Value);
         decimal rounded = decimal.Round(unrounded, 4, MidpointRounding.ToEven);
 
