@@ -1,0 +1,22 @@
+#!/bin/sh
+
+FORBIDDEN_FILES="Directory\.Build\.props \.github.* \.gitattributes"
+STAGED_FILES=$(git --no-pager diff --cached --name-only)
+
+error="false"
+
+for file in $FORBIDDEN_FILES; do
+  if echo "$STAGED_FILES" | grep -q "^$file$"; then
+    echo "Commit blocked: changes to $file are not allowed."
+    error="true"
+  else
+    echo file "$file" OK
+  fi
+done
+
+if [ "$error" = "true" ] 
+then
+  exit 1
+else
+  exit 0
+fi
