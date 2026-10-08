@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Application\Atm.Application\Atm.Application.csproj" />
-    <ProjectReference Include="..\..\Application\Atm.Application.Contracts\Atm.Application.Contracts.csproj" />
+    <ProjectReference Include="..\Atm.Application\Atm.Application.csproj" />
+    <ProjectReference Include="..\Atm.Application.Contracts\Atm.Application.Contracts.csproj" />
   </ItemGroup>
 </Project>

@@ -11,6 +11,6 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Npgsql.DependencyInjection" />
-    <ProjectReference Include="..\..\Application\Atm.Application.Abstractions\Atm.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\Atm.Application.Abstractions\Atm.Application.Abstractions.csproj" />
   </ItemGroup>
 </Project>
