@@ -4,6 +4,10 @@ namespace Atm.Application.Models.Sessions;
 
 public sealed class UserSession
 {
+    public Guid SessionId { get; }
+
+    public AccountId AccountId { get; }
+
     public UserSession(
         Guid sessionId,
         AccountId accountId)
@@ -11,8 +15,4 @@ public sealed class UserSession
         SessionId = sessionId;
         AccountId = accountId;
     }
-
-    public Guid SessionId { get; }
-
-    public AccountId AccountId { get; }
 }
