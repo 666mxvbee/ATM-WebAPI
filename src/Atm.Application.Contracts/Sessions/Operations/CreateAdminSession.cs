@@ -2,7 +2,7 @@
 
 namespace Atm.Application.Contracts.Sessions.Operations;
 
-public class CreateAdminSession
+public static class CreateAdminSession
 {
     public readonly record struct Request(string SystemPassword);
 
