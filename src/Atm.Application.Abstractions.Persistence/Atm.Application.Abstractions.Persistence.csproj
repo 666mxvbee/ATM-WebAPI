@@ -1,7 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <RootNamespace>Atm.Application.Abstractions</RootNamespace>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Atm.Application.Models\Atm.Application.Models.csproj" />
   </ItemGroup>
