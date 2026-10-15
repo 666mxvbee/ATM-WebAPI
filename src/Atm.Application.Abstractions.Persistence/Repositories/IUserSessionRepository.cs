@@ -4,7 +4,7 @@ namespace Atm.Application.Abstractions.Persistence.Repositories;
 
 public interface IUserSessionRepository
 {
-    Task<UserSession> AddSessionsAsync(
+    Task<UserSession> AddSessionAsync(
         UserSession session,
         CancellationToken cancellationToken);
 
