@@ -11,7 +11,7 @@ public static class GetOperationHistory
         private Response() { }
 
         public sealed record Success(
-            OperationHistoryDto OperationHistory) : Response;
+            IReadOnlyCollection<OperationHistoryDto> OperationHistory) : Response;
 
         public sealed record Failure(string ErrorMessage) : Response;
     }
