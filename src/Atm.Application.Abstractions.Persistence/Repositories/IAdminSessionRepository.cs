@@ -8,7 +8,7 @@ public interface IAdminSessionRepository
         IReadOnlyCollection<AdminSession> sessions,
         CancellationToken cancellationToken);
 
-    Task<AdminSession> FindAdminSessionByIdAsync(
+    Task<AdminSession?> FindAdminSessionByIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken);
 }

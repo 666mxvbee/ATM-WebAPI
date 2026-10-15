@@ -8,7 +8,7 @@ public interface IUserSessionRepository
         UserSession session,
         CancellationToken cancellationToken);
 
-    Task<UserSession> FindUserSessionByIdAsync(
+    Task<UserSession?> FindUserSessionByIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken);
 }

@@ -9,7 +9,7 @@ public interface IOperationHistoryRepository
         Operation operation,
         CancellationToken cancellationToken);
 
-    IAsyncEnumerable<Operation> FindByAccountIdAsync(
+    IAsyncEnumerable<Operation?> FindByAccountIdAsync(
         AccountId accountId,
         CancellationToken cancellationToken);
 }
