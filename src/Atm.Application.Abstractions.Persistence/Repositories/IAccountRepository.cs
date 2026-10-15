@@ -9,11 +9,11 @@ public interface IAccountRepository
         IReadOnlyCollection<Account> accounts,
         CancellationToken cancellationToken);
 
-    Task<Account> GetAccountByIdAsync(
+    Task<Account> FindAccountByIdAsync(
         AccountId accountId,
         CancellationToken cancellationToken);
 
-    Task<Account> GetAccountByNumberAsync(
+    Task<Account> FindAccountByNumberAsync(
         AccountNumber accountNumber,
         CancellationToken cancellationToken);
 

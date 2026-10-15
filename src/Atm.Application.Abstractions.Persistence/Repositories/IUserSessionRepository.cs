@@ -5,10 +5,10 @@ namespace Atm.Application.Abstractions.Persistence.Repositories;
 public interface IUserSessionRepository
 {
     Task<UserSession> AddSessionsAsync(
-        IReadOnlyCollection<UserSession> sessions,
+        UserSession session,
         CancellationToken cancellationToken);
 
-    Task<UserSession> GetUserSessionByIdAsync(
+    Task<UserSession> FindUserSessionByIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken);
 }
