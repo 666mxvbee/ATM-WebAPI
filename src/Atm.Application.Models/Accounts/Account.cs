@@ -7,13 +7,7 @@ public sealed class Account
 {
     private Money _balance;
 
-    public AccountId Id { get; }
-
-    public AccountNumber Number { get; }
-
-    public Pincode Pincode { get; }
-
-    public Account(
+    private Account(
         AccountId id,
         AccountNumber number,
         Pincode pincode,
@@ -24,6 +18,32 @@ public sealed class Account
         Pincode = pincode;
         _balance = balance;
     }
+
+    public static Account CreateFromService(
+        AccountNumber number,
+        Pincode pincode)
+    {
+        return new Account(
+            AccountId.Default(),
+            number,
+            pincode,
+            Money.Create(0));
+    }
+
+    public static Account CreateFromDb(
+        AccountId id,
+        AccountNumber number,
+        Pincode pincode,
+        Money balance)
+    {
+        return new Account(id, number, pincode, balance);
+    }
+
+    public AccountId Id { get; }
+
+    public AccountNumber Number { get; }
+
+    public Pincode Pincode { get; }
 
     public DepositResult Deposit(Money money)
     {

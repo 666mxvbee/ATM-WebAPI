@@ -15,4 +15,9 @@ public readonly record struct AccountId
     {
         return new AccountId(value);
     }
+
+    public static AccountId Default()
+    {
+        return new AccountId(0);
+    }
 }
