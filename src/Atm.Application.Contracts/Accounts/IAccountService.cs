@@ -15,4 +15,8 @@ public interface IAccountService
     Task<DepositBalance.Response> DepositBalanceAsync(
         WithdrawBalance.Request request,
         CancellationToken cancellationToken);
+
+    Task<GetOperationHistory.Response> GetOperationHistoryAsync(
+        GetOperationHistory.Request request,
+        CancellationToken cancellationToken);
 }
