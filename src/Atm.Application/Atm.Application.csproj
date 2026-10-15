@@ -10,9 +10,5 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Accounts\" />
-  </ItemGroup>
 </Project>
     
