@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/common/">
+    <File Path="Directory.Packages.props" />
+    <File Path="Directory.Build.props" />
+    <File Path=".gitignore" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Application/">
+    <Project Path="src/Atm.Application.Abstractions.Persistence/Atm.Application.Abstractions.Persistence.csproj" />
+    <Project Path="src/Atm.Application.Contracts/Atm.Application.Contracts.csproj" />
+    <Project Path="src/Atm.Application.Models/Atm.Application.Models.csproj" />
+    <Project Path="src/Atm.Application/Atm.Application.csproj" />
+  </Folder>
+  <Folder Name="/src/Atm.Api/">
+    <Project Path="src/Atm.Api/Atm.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src\Atm.Infrastructure.Persistence\Atm.Infrastructure.Persistence.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Atm.Presentation/Atm.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>
