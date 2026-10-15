@@ -5,8 +5,8 @@ namespace Atm.Application.Abstractions.Persistence.Repositories;
 
 public interface IAccountRepository
 {
-    Task<Account> AddAccountsAsync(
-        IReadOnlyCollection<Account> accounts,
+    Task<Account> AddAccountAsync(
+        Account account,
         CancellationToken cancellationToken);
 
     Task<Account?> FindAccountByIdAsync(
