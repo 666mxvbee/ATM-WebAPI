@@ -1,13 +1,12 @@
 ﻿using Atm.Application.Contracts.Sessions.Models;
-using Atm.Application.Models.Accounts.ValueObjects;
 
 namespace Atm.Application.Contracts.Sessions.Operations;
 
 public static class CreateUserSession
 {
     public readonly record struct Request(
-        AccountNumber AccountNumber,
-        Pincode Pincode);
+        string AccountNumber,
+        string Pincode);
 
     public abstract record Response
     {
