@@ -1,6 +1,8 @@
 ﻿using Atm.Application.Abstractions.Persistence;
 using Atm.Application.Contracts.Sessions;
 using Atm.Application.Contracts.Sessions.Operations;
+using Atm.Application.Models.Accounts;
+using Atm.Application.Models.Accounts.ValueObjects;
 using Atm.Application.Models.Sessions;
 using Atm.HighLoad.Application.Mapping;
 using Atm.HighLoad.Application.Options;
@@ -25,7 +27,29 @@ public sealed class SessionService : ISessionService
         CreateUserSession.Request request,
         CancellationToken cancellationToken)
     {
-        
+        var accountNumber = AccountNumber.Create(request.AccountNumber);
+        var pincode = Pincode.Create(request.Pincode);
+
+        Account? account = await _context.AccountRepository
+            .FindAccountByNumberAsync(accountNumber, cancellationToken);
+
+        if (account is null)
+        {
+            return new CreateUserSession.Response.Failure("Account was not found.");
+        }
+
+        if (pincode != account.Pincode)
+        {
+            return new CreateUserSession.Response.Failure("Wrong pincode.");
+        }
+
+        var session = new UserSession(Guid.NewGuid(), account.Id);
+
+        await _context.UserSessionRepository.AddSessionAsync(
+            session,
+            cancellationToken);
+
+        return new CreateUserSession.Response.Success(session.UserSessionMapToDto());
     }
 
     public async Task<CreateAdminSession.Response> CreateAdminSessionAsync(
@@ -34,7 +58,7 @@ public sealed class SessionService : ISessionService
     {
         if (request.SystemPassword != _systemPassword)
         {
-            return new CreateAdminSession.Response.Failure("wrong password.");
+            return new CreateAdminSession.Response.Failure("Wrong password.");
         }
 
         var session = new AdminSession(Guid.NewGuid());
