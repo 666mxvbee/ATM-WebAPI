@@ -4,6 +4,6 @@ public sealed record OperationHistoryDto(
     long OperationId,
     long AccountId,
     DateTimeOffset Time,
-    OperationType OperationType,
+    string OperationType,
     decimal Amount,
     decimal BalanceAfter);
