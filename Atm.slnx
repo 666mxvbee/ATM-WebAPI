@@ -6,7 +6,7 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Application/">
-    <Project Path="src/Atm.Application.Abstractions.Persistence/Atm.Application.Abstractions.Persistence.csproj" />
+    <Project Path="src/Atm.Application.Abstractions/Atm.Application.Abstractions.csproj" />
     <Project Path="src/Atm.Application.Contracts/Atm.Application.Contracts.csproj" />
     <Project Path="src/Atm.Application.Models/Atm.Application.Models.csproj" />
     <Project Path="src/Atm.Application/Atm.Application.csproj" />

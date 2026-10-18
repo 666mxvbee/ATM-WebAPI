@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <ProjectReference Include="..\Atm.Application.Models\Atm.Application.Models.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="SourceKit.Generators.Builder" />
-    <PackageReference Include="SourceKit.Generators.Builder.Annotations" />
-  </ItemGroup>
-</Project>

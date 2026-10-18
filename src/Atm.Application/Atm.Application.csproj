@@ -4,7 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Atm.Application.Contracts\Atm.Application.Contracts.csproj" />
-    <ProjectReference Include="..\Atm.Application.Abstractions.Persistence\Atm.Application.Abstractions.Persistence.csproj" />
+    <ProjectReference Include="..\Atm.Application.Abstractions\Atm.Application.Abstractions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

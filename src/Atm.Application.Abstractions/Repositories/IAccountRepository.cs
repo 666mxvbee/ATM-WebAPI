@@ -1,7 +1,7 @@
 ﻿using Atm.Application.Models.Accounts;
 using Atm.Application.Models.Accounts.ValueObjects;
 
-namespace Atm.Application.Abstractions.Persistence.Repositories;
+namespace Atm.Application.Abstractions.Repositories;
 
 public interface IAccountRepository
 {

@@ -1,4 +1,4 @@
-﻿using Atm.Application.Abstractions.Persistence;
+﻿using Atm.Application.Abstractions;
 using Atm.Application.Contracts.Accounts;
 using Atm.Application.Contracts.Accounts.Operations;
 using Atm.Application.Models.Accounts;

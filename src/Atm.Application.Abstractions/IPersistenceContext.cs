@@ -1,6 +1,6 @@
-﻿using Atm.Application.Abstractions.Persistence.Repositories;
+﻿using Atm.Application.Abstractions.Repositories;
 
-namespace Atm.Application.Abstractions.Persistence;
+namespace Atm.Application.Abstractions;
 
 public interface IPersistenceContext
 {

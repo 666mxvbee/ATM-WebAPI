@@ -1,6 +1,6 @@
 ﻿using Atm.Application.Models.Sessions;
 
-namespace Atm.Application.Abstractions.Persistence.Repositories;
+namespace Atm.Application.Abstractions.Repositories;
 
 public interface IUserSessionRepository
 {

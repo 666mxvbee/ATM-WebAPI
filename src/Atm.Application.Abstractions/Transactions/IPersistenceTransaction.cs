@@ -1,4 +1,4 @@
-﻿namespace Atm.Application.Abstractions.Persistence.Transactions;
+﻿namespace Atm.Application.Abstractions.Transactions;
 
 public interface IPersistenceTransaction : IAsyncDisposable
 {
