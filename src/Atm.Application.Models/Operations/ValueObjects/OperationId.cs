@@ -15,4 +15,9 @@ public readonly record struct OperationId
     {
         return new OperationId(value);
     }
+
+    public static OperationId Default()
+    {
+        return new OperationId(0);
+    }
 }

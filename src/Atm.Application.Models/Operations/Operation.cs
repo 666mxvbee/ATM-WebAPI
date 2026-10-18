@@ -5,6 +5,55 @@ namespace Atm.Application.Models.Operations;
 
 public sealed class Operation
 {
+    private Operation(
+        OperationId operationId,
+        AccountId accountId,
+        DateTimeOffset time,
+        OperationType operationType,
+        Money amount,
+        Money balanceAfter)
+    {
+        OperationId = operationId;
+        AccountId = accountId;
+        Time = time;
+        OperationType = operationType;
+        Amount = amount;
+        BalanceAfter = balanceAfter;
+    }
+
+    public static Operation CreateFromService(
+        AccountId accountId,
+        DateTimeOffset time,
+        OperationType operationType,
+        Money amount,
+        Money balanceAfter)
+    {
+        return new Operation(
+            OperationId.Default(),
+            accountId,
+            time,
+            operationType,
+            amount,
+            balanceAfter);
+    }
+
+    public static Operation CreateFromDb(
+        OperationId operationId,
+        AccountId accountId,
+        DateTimeOffset time,
+        OperationType operationType,
+        Money amount,
+        Money balanceAfter)
+    {
+        return new Operation(
+            operationId,
+            accountId,
+            time,
+            operationType,
+            amount,
+            balanceAfter);
+    }
+
     public OperationId OperationId { get; }
 
     public AccountId AccountId { get; }
@@ -13,19 +62,7 @@ public sealed class Operation
 
     public OperationType OperationType { get; }
 
-    public Money Balance { get; }
+    public Money Amount { get; }
 
-    public Operation(
-        OperationId operationId,
-        AccountId accountId,
-        DateTimeOffset time,
-        OperationType operationType,
-        Money balance)
-    {
-        OperationId = operationId;
-        AccountId = accountId;
-        Time = time;
-        OperationType = operationType;
-        Balance = balance;
-    }
+    public Money BalanceAfter { get; }
 }
