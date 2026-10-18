@@ -4,7 +4,7 @@ namespace Atm.Application.Contracts.Accounts;
 
 public interface IAccountService
 {
-    Task<GetBalance.Response> GetAccountAsync(
+    Task<GetBalance.Response> GetAccountBalanceAsync(
         GetBalance.Request request,
         CancellationToken cancellationToken);
 
