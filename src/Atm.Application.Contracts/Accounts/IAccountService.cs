@@ -13,7 +13,7 @@ public interface IAccountService
         CancellationToken cancellationToken);
 
     Task<DepositBalance.Response> DepositBalanceAsync(
-        WithdrawBalance.Request request,
+        DepositBalance.Request request,
         CancellationToken cancellationToken);
 
     Task<GetOperationHistory.Response> GetOperationHistoryAsync(

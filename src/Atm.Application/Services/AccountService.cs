@@ -117,7 +117,7 @@ public sealed class AccountService : IAccountService
     }
 
     public async Task<DepositBalance.Response> DepositBalanceAsync(
-        WithdrawBalance.Request request,
+        DepositBalance.Request request,
         CancellationToken cancellationToken)
     {
         UserSession? session = await _context.UserSessionRepository
