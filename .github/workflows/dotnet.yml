@@ -17,15 +17,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
-          cache: true
-          cache-dependency-path: '**/packages.lock.json'
+          dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore Atm.sln
+        run: dotnet restore Atm.slnx
 
       - name: Build
-        run: dotnet build Atm.sln -c Release --no-restore
+        run: dotnet build Atm.slnx -c Release --no-restore
 
       - name: Test
-        run: dotnet test Atm.sln -c Release --no-build --verbosity normal
+        run: dotnet test Atm.slnx -c Release --no-build --verbosity normal
