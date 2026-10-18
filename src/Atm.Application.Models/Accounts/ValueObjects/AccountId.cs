@@ -6,13 +6,15 @@ public readonly record struct AccountId
 
     private AccountId(long value)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+        ArgumentOutOfRangeException.ThrowIfNegative(value);
 
         Value = value;
     }
 
     public static AccountId Create(long value)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+
         return new AccountId(value);
     }
 

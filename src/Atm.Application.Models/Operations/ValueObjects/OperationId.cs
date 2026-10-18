@@ -6,13 +6,15 @@ public readonly record struct OperationId
 
     private OperationId(long value)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+        ArgumentOutOfRangeException.ThrowIfNegative(value);
 
         Value = value;
     }
 
     public static OperationId Create(long value)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+
         return new OperationId(value);
     }
 
