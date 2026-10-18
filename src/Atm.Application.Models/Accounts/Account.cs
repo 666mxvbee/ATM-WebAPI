@@ -5,8 +5,6 @@ namespace Atm.Application.Models.Accounts;
 
 public sealed class Account
 {
-    private Money _balance;
-
     private Account(
         AccountId id,
         AccountNumber number,
@@ -16,7 +14,7 @@ public sealed class Account
         Id = id;
         Number = number;
         Pincode = pincode;
-        _balance = balance;
+        Balance = balance;
     }
 
     public static Account CreateFromService(
@@ -45,21 +43,23 @@ public sealed class Account
 
     public Pincode Pincode { get; }
 
+    public Money Balance { get; private set; }
+
     public DepositResult Deposit(Money money)
     {
-        _balance += money;
+        Balance += money;
 
         return new DepositResult.Success();
     }
 
     public WithdrawResult Withdraw(Money money)
     {
-        if (money > _balance)
+        if (money > Balance)
         {
             return new WithdrawResult.Failure("Insufficient funds");
         }
 
-        _balance -= money;
+        Balance -= money;
 
         return new WithdrawResult.Success();
     }
