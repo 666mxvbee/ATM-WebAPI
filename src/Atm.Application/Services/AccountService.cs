@@ -86,6 +86,11 @@ public sealed class AccountService : IAccountService
 
         WithdrawResult result = account.Withdraw(amount);
 
+        if (result is WithdrawResult.Failure failure)
+        {
+            return new WithdrawBalance.Response.Failure(failure.ErrorMessage);
+        }
+
         await _context.AccountRepository
             .UpdateAccountAsync(
                 account,
