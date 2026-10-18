@@ -82,6 +82,11 @@ public sealed class AccountService : IAccountService
             return new WithdrawBalance.Response.Failure("Account does not exist.");
         }
 
+        if (request.Money <= 0)
+        {
+            return new WithdrawBalance.Response.Failure("Invalid money.");
+        }
+
         var amount = Money.Create(request.Money);
 
         WithdrawResult result = account.Withdraw(amount);
@@ -137,7 +142,7 @@ public sealed class AccountService : IAccountService
 
         var amount = Money.Create(request.Money);
 
-        DepositResult result = account.Deposit(amount);
+        account.Deposit(amount);
 
         await _context.AccountRepository.UpdateAccountAsync(
             account,
