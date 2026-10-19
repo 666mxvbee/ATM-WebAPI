@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Atm.Presentation.Controllers;
 
 [ApiController]
-[Route("api/admin")]
+[Route("/api/admin")]
 public sealed class AccountController : ControllerBase
 {
     private readonly IAdminService _adminService;
