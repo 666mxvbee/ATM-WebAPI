@@ -10,7 +10,6 @@ public sealed class AccountRepository : IAccountRepository
     private readonly Lock _sync = new();
     private long _lastId;
 
-
     public Task<Account> AddAccountAsync(
         Account account,
         CancellationToken cancellationToken)
@@ -84,7 +83,7 @@ public sealed class AccountRepository : IAccountRepository
 
             _values[account.Id] = Copy(account);
         }
-        
+
         return Task.CompletedTask;
     }
 
