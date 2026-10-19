@@ -9,11 +9,11 @@ namespace Atm.Presentation.Controllers;
 
 [ApiController]
 [Route("/api/admin")]
-public sealed class AccountController : ControllerBase
+public sealed class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
 
-    public AccountController(IAdminService adminService)
+    public AdminController(IAdminService adminService)
     {
         _adminService = adminService;
     }
