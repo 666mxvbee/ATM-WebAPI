@@ -30,7 +30,7 @@ public sealed class AccountRepository : IAccountRepository
                 account.Pincode,
                 account.Balance);
 
-            _values.Add(savedAccount.Id, Copy(account));
+            _values.Add(savedAccount.Id, Copy(savedAccount));
 
             return Task.FromResult(savedAccount);
         }
