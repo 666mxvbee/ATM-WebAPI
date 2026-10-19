@@ -1,7 +1,7 @@
 ﻿using Atm.Application.Contracts.Sessions.Models;
 using Atm.Application.Models.Sessions;
 
-namespace Atm.HighLoad.Application.Mapping;
+namespace Atm.Application.Mapping;
 
 public static class SessionMappingExtensions
 {

@@ -4,9 +4,9 @@ using Atm.Application.Contracts.Admins.Models;
 using Atm.Application.Models.Accounts;
 using Atm.Application.Models.Accounts.ValueObjects;
 using Atm.Application.Models.Sessions;
-using Atm.HighLoad.Application.Mapping;
+using Atm.Application.Mapping;
 
-namespace Atm.HighLoad.Application.Services;
+namespace Atm.Application.Services;
 
 public sealed class AdminService : IAdminService
 {

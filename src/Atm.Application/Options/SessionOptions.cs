@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Atm.HighLoad.Application.Options;
+namespace Atm.Application.Options;
 
 public sealed class SessionOptions
 {

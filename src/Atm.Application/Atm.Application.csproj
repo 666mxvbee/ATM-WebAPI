@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <RootNamespace>Atm.HighLoad.Application</RootNamespace>
+    <RootNamespace>Atm.Application</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Atm.Application.Contracts\Atm.Application.Contracts.csproj" />

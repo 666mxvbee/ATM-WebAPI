@@ -1,7 +1,7 @@
 ﻿using Atm.Application.Contracts.Accounts.Models;
 using Atm.Application.Models.Operations;
 
-namespace Atm.HighLoad.Application.Mapping;
+namespace Atm.Application.Mapping;
 
 public static class OperationsMappingExtensions
 {

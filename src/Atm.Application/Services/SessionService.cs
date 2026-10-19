@@ -4,11 +4,11 @@ using Atm.Application.Contracts.Sessions.Operations;
 using Atm.Application.Models.Accounts;
 using Atm.Application.Models.Accounts.ValueObjects;
 using Atm.Application.Models.Sessions;
-using Atm.HighLoad.Application.Mapping;
-using Atm.HighLoad.Application.Options;
+using Atm.Application.Mapping;
+using Atm.Application.Options;
 using Microsoft.Extensions.Options;
 
-namespace Atm.HighLoad.Application.Services;
+namespace Atm.Application.Services;
 
 public sealed class SessionService : ISessionService
 {
