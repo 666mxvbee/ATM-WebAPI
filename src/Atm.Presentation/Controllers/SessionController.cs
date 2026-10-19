@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Atm.Presentation.Controllers;
 
 [ApiController]
-[Route("/api/session")]
+[Route("/api/sessions")]
 public sealed class SessionController : ControllerBase
 {
     private readonly ISessionService _sessionService;
