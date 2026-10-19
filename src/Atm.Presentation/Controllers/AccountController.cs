@@ -20,7 +20,7 @@ public sealed class AccountController : ControllerBase
 
     [HttpGet("balance")]
     public async Task<ActionResult<BalanceDto>> GetAccountBalanceAsync(
-        [FromBody] BalanceRequest httpRequest,
+        [FromQuery] BalanceRequest httpRequest,
         CancellationToken cancellationToken)
     {
         var request = new GetBalance.Request(
@@ -78,7 +78,7 @@ public sealed class AccountController : ControllerBase
     }
 
     [HttpGet("history")]
-    public async Task<ActionResult<OperationHistoryDto>> GetOperationHistoryAsync(
+    public async Task<ActionResult<IReadOnlyCollection<OperationHistoryDto>>> GetOperationHistoryAsync(
         [FromQuery] OperationHistoryRequest httpRequest,
         CancellationToken cancellationToken)
     {
