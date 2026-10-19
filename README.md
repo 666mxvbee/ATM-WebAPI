@@ -1,116 +1,123 @@
-# ATM [Hexagonal Architecture]
+# ATM Web API
 
-Implementation of an ATM system with a Web API interface using ASP.NET Controllers and in-memory storage.
+An ATM training project built with .NET 9, ASP.NET Core Controllers, and hexagonal architecture.
 
-## Functionality
+Database stage 1 is currently in progress. Microstages 13.1 through 13.3 are implemented; runtime repositories are still temporary in-memory adapters until the EF Core repositories replace them in microstage 13.9.
 
-- creating a user session using AccountNumber + PIN
-- creating an administrator session using SystemPassword + AccountNumber
-- creating an account, available only through an admin session
-- viewing the account balance
-- depositing money into an account
-- withdrawing money
-- viewing transaction history
+## Current functionality
 
-Any account-related operation creates a record in the transaction history.
+- create expiring user and administrator sessions;
+- create an account through an administrator session;
+- view an account balance;
+- deposit and withdraw money;
+- view the legacy in-memory operation history.
+
+The domain model now also contains persistent shapes for users, canonical friendships, accounts, sessions, bank transactions, commission snapshots, and immutable account history entries. Transactional persistence, idempotency enforcement, commissions in runtime use cases, and transfers are deliberately implemented in later microstages.
 
 ## Architecture
 
-The project follows the hexagonal architecture approach:
+- **Atm.Domain** — entities, value objects, invariants, and domain operation results;
+- **Atm.Application** — use-case orchestration;
+- **Atm.Application.Abstractions** — repository, clock, security, and provider ports;
+- **Atm.Application.Contracts** — input/output ports and application results;
+- **Atm.Infrastructure** — temporary repositories plus infrastructure adapters;
+- **Atm.Presentation** — HTTP controllers and composition root.
 
-- **Domain** — domain model and value objects
-- **Application** — business logic / use cases through ports
-- **Application.Abstractions** — abstractions such as repositories, providers, and similar components
-- **Application.Contracts** — request/response contracts and operation results
-- **Infrastructure** — implementations of abstractions, including in-memory repositories, and DI registration
-- **Presentation** — ASP.NET Web API Controllers and HTTP-to-port mapping
+Domain and Application have no EF Core or PostgreSQL dependency.
 
-The layers are connected using `Microsoft.Extensions.DependencyInjection`.
+## Validation and result style
 
-Each module provides extension methods for dependency registration:
+Small value objects such as `AccountNumber`, `UserLogin`, `Money`, and `PinCode` validate themselves in constructors and reject invalid values with `ArgumentException`.
 
-- `builder.Services.AddApplication();`
-- `builder.Services.AddInfrastructure();`
+Business operations that can normally be accepted or rejected use a dedicated result type with nested `Success` and `Failure` records. The project intentionally does not introduce a universal `Result<T>` or one result hierarchy per primitive field.
 
-## System Password Configuration
+## Money rules
 
-The system password is read through `ISystemPasswordProvider`, implemented in `Atm.Presentation.Common.SystemPasswordProvider`, and is taken from the configuration.
+Amounts use .NET `decimal` and allow at most four fractional digits. There is no artificial `numeric(19,4)` business ceiling: for example, values above `1_000_000_000_000_000` are valid.
 
-`appsettings.json`:
+This does not mean infinite precision. Values must still fit in `decimal`, and arithmetic is rejected when it would overflow or silently lose a small amount near the representable boundary. PostgreSQL mappings use `numeric` without a precision declaration. Check constraints enforce at most four fractional digits and a coefficient representable by .NET decimal, including for external writes.
+
+Commission snapshots retain the applied rate, fixed component, and calculated commission. The formula is:
+
+```text
+round(amount * rate + fixed, 4, MidpointRounding.ToEven)
+```
+
+Runtime deposit and withdrawal use cases still have their legacy no-commission behavior until microstage 13.7 wires the new transaction model into one database transaction.
+
+## PIN security
+
+The account entity stores `PinHash`, never `PinCode`. `IPinHasher` is implemented using the versioned Microsoft ASP.NET Core `PasswordHasher`, which generates a unique salt and provides the matching verification routine.
+
+Do not log request bodies containing PINs. JWT, cookies, and ASP.NET Core Identity user management are outside this stage.
+
+## Clock and sessions
+
+`IClock` supplies the current UTC time. Production uses `SystemClock`; tests use a controllable `FixedClock`. This keeps time-dependent domain behavior deterministic.
+
+A user session references the stable account UUID. A system administrator session is not associated with an account. Sessions have UTC creation, expiration, and optional revocation timestamps. They are active from creation inclusively until expiration exclusively, unless revoked first.
+
+Session lifetimes are validated at startup:
 
 ```json
 {
-  "SystemAuth": {
-    "SystemPassword": "your_password_here"
+  "Sessions": {
+    "UserLifetimeMinutes": 30,
+    "AdminLifetimeMinutes": 15
   }
 }
 ```
 
-## Running the API
+Both values must be positive.
 
-The HTTP launch profile uses:
+## System password configuration
 
-```text
-http://localhost:5015
+The administrator password comes from configuration through `ISystemPasswordProvider`:
+
+```json
+{
+  "SystemAuth": {
+    "SystemPassword": "use-a-secret-provider"
+  }
+}
 ```
 
-Swagger UI is available at:
+Do not commit a real password. Override the development placeholder with user secrets or an environment variable.
 
-```text
-http://localhost:5015/swagger
-```
+## API examples
 
-## API Use Cases
+The local HTTP profile uses `http://localhost:5015`; Swagger is available at `http://localhost:5015/swagger` in Development.
 
-### 1. Create an admin session
-
-Use this when an administrator needs to perform admin-only actions, such as creating a new account.
+### Create an administrator session
 
 `POST /api/sessions/admin`
 
 ```json
 {
-  "systemPassword": "your_password_here",
-  "accountNumber": "acc-1"
+  "systemPassword": "use-a-secret-provider",
+  "accountNumber": "legacy-admin-context"
 }
 ```
 
-Successful response:
+`accountNumber` remains required only for backward compatibility with the existing HTTP contract. A system administrator session does not store or authorize against this number.
 
-```json
-{
-  "sessionId": "admin-session-guid"
-}
-```
-
-The returned `sessionId` is used as `adminSessionId` in admin-only requests.
-
-### 2. Create an account
-
-Requires an admin session.
+### Create an account
 
 `POST /api/accounts/create`
 
 ```json
 {
-  "adminSessionId": "admin-session-guid",
+  "adminSessionId": "00000000-0000-0000-0000-000000000001",
   "accountNumber": "acc-1",
   "pin": "1234",
-  "initialBalance": 100
+  "initialBalance": 100,
+  "ownerUserId": "00000000-0000-0000-0000-000000000002"
 }
 ```
 
-Successful response:
+`ownerUserId` is a breaking addition to the old contract. In the current transitional in-memory implementation only a non-empty UUID is checked. Existence is enforced by the user repository and PostgreSQL foreign key in later persistence microstages. There is intentionally no user/profile HTTP CRUD endpoint in stage 1.
 
-```json
-{
-  "message": "Account created"
-}
-```
-
-### 3. Create a user session
-
-Use this after an account has been created. The user signs in with the account number and PIN.
+### Create a user session
 
 `POST /api/sessions/user`
 
@@ -121,103 +128,71 @@ Use this after an account has been created. The user signs in with the account n
 }
 ```
 
-Successful response:
+The returned `sessionId` authorizes balance, deposit, withdrawal, and history operations.
 
-```json
-{
-  "sessionId": "user-session-guid"
-}
+### Account operations
+
+- `GET /api/accounts/balance?sessionId={user-session-id}`
+- `POST /api/accounts/deposit` with `userSessionId` and `amount`
+- `POST /api/accounts/withdraw` with `userSessionId` and `amount`
+- `GET /api/accounts/history?sessionId={user-session-id}`
+
+## Build and test
+
+```powershell
+dotnet restore Atm.sln --locked-mode
+dotnet build Atm.sln -c Release --no-restore
+dotnet test Atm.sln -c Release --no-build
 ```
 
-The returned `sessionId` is used as the user session identifier for balance, deposit, withdrawal, and history operations.
+Tests are separated by architectural layer:
 
-### 4. View balance
+- `Atm.Domain.Tests` validates value objects, entities, invariants, commissions, and history calculations;
+- `Atm.Application.Tests` validates use cases, authorization, and application orchestration through ports;
+- `Atm.Infrastructure.Tests` validates concrete infrastructure adapters, EF metadata, PostgreSQL SQL generation, materialization, change tracking, financial write guards, and the design-time factory.
 
-Requires a user session.
+Each test project references only the production layer it is intended to test. Unit tests create mocks or focused test objects directly and do not build the production DI container or start a database.
 
-`GET /api/accounts/balance?sessionId=user-session-guid`
+## EF model and design-time tools (13.3)
 
-Successful response:
+`AtmDbContext` and six separate configurations are in `src/Atm.Infrastructure/Persistence`. The model maps the six tables from the specification in the `public` schema with explicit snake_case names, primary keys, foreign keys, checks, and indexes.
 
-```json
-{
-  "balance": 100
-}
+`UserLogin`, `AccountNumber`, and `CommissionSnapshot` use owned mappings within their owners' tables. Normalization is computed by the existing domain constructors, with unique indexes and PostgreSQL `C` collation on the normalized columns. `Money`, `Amount`, and `PinHash` use value conversions; monetary objects have value comparers for change tracking. The shared account-number mapping also includes the account version concurrency column.
+
+`SaveChanges` and `SaveChangesAsync` reject tracked updates or deletes of persisted transactions, commission snapshots, and history, as well as physical deletion of accounts. These guards apply to tracked saves; future repository APIs and database permissions must also prevent bulk SQL from bypassing the financial write policy.
+
+The design-time factory reads `ConnectionStrings__AtmDatabase` from the environment. Supply Host, Database, and any required authentication through your local environment or secret tooling. The factory has no fallback credentials and does not include connection values in validation errors. It creates a context without opening a connection.
+
+After configuring that variable, inspect the model without applying a migration:
+
+```powershell
+dotnet tool restore
+dotnet ef dbcontext list --project src/Atm.Infrastructure --startup-project src/Atm.Presentation
+dotnet ef dbcontext script --project src/Atm.Infrastructure --startup-project src/Atm.Presentation
 ```
 
-### 5. Deposit money
+The script command generates SQL only. It is not a migration or a deployment step. Model tests exercise the actual Npgsql provider without executing SQL against a database; applying constraints and round-tripping data on PostgreSQL remain part of the migration and integration-test microstages.
 
-Requires a user session.
+## Review of 13.2
 
-`POST /api/accounts/deposit`
+The review accompanying 13.3 checked the domain entities, UUIDs, owner references, normalization, session lifecycle, monetary invariants, commission snapshots, and history shape against the specification.
 
-```json
-{
-  "userSessionId": "user-session-guid",
-  "amount": 50
-}
-```
+Two defects were fixed with domain regression tests:
 
-Successful response:
+- an absent transaction side now requires `null`; `Guid.Empty` is rejected for the source of a deposit or target of a withdrawal;
+- commission multiplication detects unrepresentable intermediate results before the explicit four-place rounding, including `decimal.MaxValue * 0.5m`.
 
-```json
-{
-  "balance": 150
-}
-```
+The domain remains independent of EF Core. User existence, request-ID uniqueness, atomic operations, and concurrent database writes require the later persistence/use-case stages; the review does not claim those features already work in the temporary runtime.
 
-### 6. Withdraw money
+## Transitional limitations
 
-Requires a user session.
+The following stage-1 work is not yet complete:
 
-`POST /api/accounts/withdraw`
+- initial migration and PostgreSQL repositories;
+- asynchronous persistence ports and cancellation tokens;
+- atomic balance/transaction/history commits;
+- database-backed idempotency and concurrency handling;
+- runtime commission policies and transfers;
+- PostgreSQL integration tests, production DI replacement, and CI environment.
 
-```json
-{
-  "userSessionId": "user-session-guid",
-  "amount": 30
-}
-```
-
-Successful response:
-
-```json
-{
-  "balance": 120
-}
-```
-
-### 7. View transaction history
-
-Requires a user session.
-
-`GET /api/accounts/history?sessionId=user-session-guid`
-
-Successful response:
-
-```json
-{
-  "transactions": [
-    {
-      "type": "Deposit",
-      "amount": 50,
-      "balanceAfter": 150
-    },
-    {
-      "type": "Withdraw",
-      "amount": 30,
-      "balanceAfter": 120
-    }
-  ]
-}
-```
-
-## Authentication and Authorization Model
-
-The project currently uses application-level sessions instead of ASP.NET Core JWT or cookie authentication.
-
-- Admin authentication is performed with `SystemPassword`.
-- User authentication is performed with `AccountNumber` and `PIN`.
-- Authorization is performed by checking the session type: `Admin` or `User`.
-- Admin-only operations require an admin session.
-- Account operations require a user session.
+Do not treat the current in-memory repositories as production persistence.

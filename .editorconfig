@@ -4,6 +4,7 @@
 tab_width = 4
 indent_size = 4
 end_of_line = lf
+max_line_length = 120
 
 dotnet_diagnostic.ide0001.severity = warning
 dotnet_diagnostic.ide0002.severity = warning
@@ -118,7 +119,7 @@ dotnet_diagnostic.ide0035.severity = warning
 
 # IDE0036
 dotnet_diagnostic.ide0036.severity = warning
-csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, required, unsafe, volatile, async
 
 # IDE0037
 dotnet_diagnostic.ide0037.severity = warning
@@ -576,7 +577,7 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
 csharp_style_prefer_utf8_string_literals = true:suggestion
 
 # ReSharper
-resharper_csharp_empty_block_style = together_same_line
+resharper_csharp_empty_block_style = together
 
 csharp_wrap_arguments_style = chop_if_long
 csharp_wrap_chained_method_calls = chop_if_long
@@ -588,6 +589,8 @@ resharper_csharp_wrap_parameters_style = chop_if_long
 dotnet_diagnostic.CS1591.severity = none
 dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA1034.severity = none
+dotnet_diagnostic.CS1574.severity = none
+dotnet_diagnostic.CS1573.severity = none
 
 dotnet_diagnostic.SA1101.severity = none
 dotnet_diagnostic.SA1503.severity = none
@@ -601,5 +604,7 @@ dotnet_diagnostic.SA1604.severity = none
 dotnet_diagnostic.SA1629.severity = none
 dotnet_diagnostic.SA1602.severity = none
 dotnet_diagnostic.SA1615.severity = none
+dotnet_diagnostic.SA1618.severity = none
+dotnet_diagnostic.SA1206.severity = none
 
 resharper_braces_redundant = false

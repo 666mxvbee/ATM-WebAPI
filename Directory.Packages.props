@@ -1,0 +1,46 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <EnablePackageVersionOverride>false</EnablePackageVersionOverride>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageVersion Include="coverlet.collector" Version="6.0.4">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageVersion>
+        <PackageVersion Include="FluentMigrator" Version="8.0.1" />
+        <PackageVersion Include="FluentMigrator.Runner" Version="8.0.1" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-preview.1.26104.118" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.Extensions.Options" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="11.0.0-preview.2.26159.112" />
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageVersion Include="Npgsql" Version="10.0.1" />
+        <PackageVersion Include="Npgsql.DependencyInjection" Version="10.0.1" />
+        <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
+        <PackageVersion Include="Scalar.AspNetCore" Version="2.13.8" />
+        <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
+        <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />
+        <PackageVersion Include="SourceKit.Analyzers.MemberAccessibility" Version="1.0.52" />
+        <PackageVersion Include="SourceKit.Analyzers.Nullable" Version="1.0.52" />
+        <PackageVersion Include="SourceKit.Analyzers.Properties" Version="1.0.52" />
+        <PackageVersion Include="Itmo.Dev.Editorconfig" Version="1.0.14" />
+        <PackageVersion Include="SourceKit.Generators.Builder" Version="1.2.54" />
+        <PackageVersion Include="SourceKit.Generators.Builder.Annotations" Version="1.1.54" />
+        <PackageVersion Include="Spectre.Console.Cli" Version="1.0.0-alpha.0.15" />
+        <PackageVersion Include="Spectre.Console.Registrars.Microsoft-Di" Version="0.6.0" />
+        <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+        <PackageVersion Include="Swashbuckle.AspNetCore.Swagger" Version="10.1.5" />
+        <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="10.1.5" />
+        <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.5" />
+        <PackageVersion Include="xunit" Version="2.9.3" />
+        <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" IncludeAssets="runtime; build; native; contentfiles; analyzers; buildtransitive" />
+        <PackageVersion Include="SourceKit.Analyzers" Version="1.0.101" />
+        <PackageVersion Include="Dapper" Version="2.1.86" />
+        <PackageVersion Include="FluentMigrator.Runner.Postgres" Version="8.0.1" />
+        <PackageVersion Include="Microsoft.OpenApi" Version="2.7.5" />
+    </ItemGroup>
+</Project>
