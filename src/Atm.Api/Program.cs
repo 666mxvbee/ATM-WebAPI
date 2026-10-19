@@ -1,6 +1,7 @@
 using Atm.Application;
 using Atm.Infrastructure.Persistence;
 using Atm.Presentation;
+using SessionOptions = Atm.Application.Options.SessionOptions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,12 @@ builder.Services
     .AddPresentationHttp();
 
 builder.Services.AddSwaggerGen().AddEndpointsApiExplorer();
+
+builder.Services
+    .AddOptions<SessionOptions>()
+    .Bind(builder.Configuration.GetRequiredSection("Session"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 WebApplication app = builder.Build();
 
