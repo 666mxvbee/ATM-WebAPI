@@ -140,6 +140,11 @@ public sealed class AccountService : IAccountService
             return new DepositBalance.Response.Failure("Account does not exist.");
         }
 
+        if (request.Money <= 0)
+        {
+            return new DepositBalance.Response.Failure("Invalid money.");
+        }
+
         var amount = Money.Create(request.Money);
 
         account.Deposit(amount);
