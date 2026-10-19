@@ -20,5 +20,4 @@
   <Folder Name="/src/Presentation/">
     <Project Path="src/Atm.Presentation/Atm.Presentation.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
 </Solution>
