@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace Atm.Infrastructure.Persistence.Repositories;
 
-public class UserSessionRepository : IUserSessionRepository
+public sealed class UserSessionRepository : IUserSessionRepository
 {
     private readonly ConcurrentDictionary<Guid, UserSession> _values = new();
 

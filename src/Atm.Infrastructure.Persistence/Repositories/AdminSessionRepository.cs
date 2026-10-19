@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace Atm.Infrastructure.Persistence.Repositories;
 
-public class AdminSessionRepository : IAdminSessionRepository
+public sealed class AdminSessionRepository : IAdminSessionRepository
 {
     private readonly ConcurrentDictionary<Guid, AdminSession> _values = new();
 
