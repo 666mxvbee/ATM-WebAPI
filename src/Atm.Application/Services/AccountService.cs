@@ -1,4 +1,5 @@
 ﻿using Atm.Application.Abstractions;
+using Atm.Application.Abstractions.Transactions;
 using Atm.Application.Contracts.Accounts;
 using Atm.Application.Contracts.Accounts.Operations;
 using Atm.Application.Mapping;
@@ -7,16 +8,19 @@ using Atm.Application.Models.Accounts.Results;
 using Atm.Application.Models.Accounts.ValueObjects;
 using Atm.Application.Models.Operations;
 using Atm.Application.Models.Sessions;
+using System.Data;
 
 namespace Atm.Application.Services;
 
 public sealed class AccountService : IAccountService
 {
     private readonly IPersistenceContext _context;
+    private readonly IPersistenceTransactionProvider _transactionProvider;
 
-    public AccountService(IPersistenceContext context)
+    public AccountService(IPersistenceContext context, IPersistenceTransactionProvider transactionProvider)
     {
         _context = context;
+        _transactionProvider = transactionProvider;
     }
 
     public async Task<GetBalance.Response> GetAccountBalanceAsync(
@@ -72,6 +76,9 @@ public sealed class AccountService : IAccountService
             return new WithdrawBalance.Response.Failure("UserSession does not exist.");
         }
 
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+
         Account? account = await _context.AccountRepository
             .FindAccountByIdAsync(
                 session.AccountId,
@@ -113,6 +120,8 @@ public sealed class AccountService : IAccountService
                operation,
                cancellationToken);
 
+        await transaction.CommitAsync(cancellationToken);
+
         return new WithdrawBalance.Response.Success(account.Balance.BalanceToDto());
     }
 
@@ -129,6 +138,9 @@ public sealed class AccountService : IAccountService
         {
             return new DepositBalance.Response.Failure("UserSession does not exist.");
         }
+
+        await using IPersistenceTransaction transaction = await _transactionProvider
+            .BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
         Account? account = await _context.AccountRepository
             .FindAccountByIdAsync(
@@ -164,6 +176,8 @@ public sealed class AccountService : IAccountService
             .AddOperationAsync(
                 operation,
                 cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         return new DepositBalance.Response.Success(account.Balance.BalanceToDto());
     }
