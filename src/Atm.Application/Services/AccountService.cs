@@ -49,7 +49,7 @@ public sealed class AccountService : IAccountService
 
         var operation = Operation.CreateFromService(
             account.Id,
-            DateTimeOffset.Now,
+            DateTimeOffset.UtcNow,
             OperationType.ShowBalance,
             Money.Zero,
             account.Balance);
@@ -110,7 +110,7 @@ public sealed class AccountService : IAccountService
 
         var operation = Operation.CreateFromService(
             account.Id,
-            DateTimeOffset.Now,
+            DateTimeOffset.UtcNow,
             OperationType.Withdraw,
             amount,
             account.Balance);
@@ -167,7 +167,7 @@ public sealed class AccountService : IAccountService
 
         var operation = Operation.CreateFromService(
             account.Id,
-            DateTimeOffset.Now,
+            DateTimeOffset.UtcNow,
             OperationType.Deposit,
             amount,
             account.Balance);
