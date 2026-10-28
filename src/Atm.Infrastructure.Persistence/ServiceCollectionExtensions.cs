@@ -1,6 +1,6 @@
 ﻿using Atm.Application.Abstractions;
 using Atm.Application.Abstractions.Repositories;
-using Atm.Infrastructure.Persistence.Repositories;
+using Atm.Infrastructure.Persistence.RepositoriesInMemory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Atm.Infrastructure.Persistence;
@@ -10,10 +10,10 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection collection)
     {
-        collection.AddSingleton<IAccountRepository, AccountRepository>();
-        collection.AddSingleton<IAdminSessionRepository, AdminSessionRepository>();
-        collection.AddSingleton<IUserSessionRepository, UserSessionRepository>();
-        collection.AddSingleton<IOperationHistoryRepository, OperationHistoryRepository>();
+        collection.AddScoped<IAccountRepository, AccountRepository>();
+        collection.AddScoped<IAdminSessionRepository, AdminSessionRepository>();
+        collection.AddScoped<IUserSessionRepository, UserSessionRepository>();
+        collection.AddScoped<IOperationHistoryRepository, OperationHistoryRepository>();
 
         collection.AddScoped<IPersistenceContext, PersistenceContext>();
 
