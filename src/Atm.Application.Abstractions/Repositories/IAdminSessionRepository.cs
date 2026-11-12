@@ -4,8 +4,8 @@ namespace Atm.Application.Abstractions.Repositories;
 
 public interface IAdminSessionRepository
 {
-    Task<AdminSession> AddSessionAsync(
-        AdminSession sessions,
+    IAsyncEnumerable<AdminSession> AddSessionAsync(
+        IReadOnlyCollection<AdminSession> sessions,
         CancellationToken cancellationToken);
 
     Task<AdminSession?> FindAdminSessionByIdAsync(
