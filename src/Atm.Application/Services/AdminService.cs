@@ -45,7 +45,8 @@ public sealed class AdminService : IAdminService
             pincode);
 
         Account createdAccount = await _context.AccountRepository
-            .AddAccountAsync(newAccount, cancellationToken);
+            .AddAccountAsync([newAccount], cancellationToken)
+            .FirstAsync(cancellationToken);
 
         return new CreateAccount.Response.Success(createdAccount.AccountMapToDto());
     }

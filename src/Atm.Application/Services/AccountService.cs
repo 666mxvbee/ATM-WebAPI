@@ -56,8 +56,9 @@ public sealed class AccountService : IAccountService
 
         await _context.OperationHistoryRepository
             .AddOperationAsync(
-                operation,
-                cancellationToken);
+                [operation],
+                cancellationToken)
+            .FirstAsync(cancellationToken);
 
         return new GetBalance.Response.Success(account.Balance.BalanceToDto());
     }
@@ -105,8 +106,9 @@ public sealed class AccountService : IAccountService
 
         await _context.AccountRepository
             .UpdateAccountAsync(
-                account,
-                cancellationToken);
+                [account],
+                cancellationToken)
+            .FirstAsync(cancellationToken);
 
         var operation = Operation.CreateFromService(
             account.Id,
@@ -117,8 +119,9 @@ public sealed class AccountService : IAccountService
 
         await _context.OperationHistoryRepository
            .AddOperationAsync(
-               operation,
-               cancellationToken);
+               [operation],
+               cancellationToken)
+           .FirstAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -162,8 +165,9 @@ public sealed class AccountService : IAccountService
         account.Deposit(amount);
 
         await _context.AccountRepository.UpdateAccountAsync(
-            account,
-            cancellationToken);
+            [account],
+            cancellationToken)
+            .FirstAsync(cancellationToken);
 
         var operation = Operation.CreateFromService(
             account.Id,
@@ -174,8 +178,9 @@ public sealed class AccountService : IAccountService
 
         await _context.OperationHistoryRepository
             .AddOperationAsync(
-                operation,
-                cancellationToken);
+                [operation],
+                cancellationToken)
+            .FirstAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 
@@ -209,8 +214,7 @@ public sealed class AccountService : IAccountService
         var operations = new List<Operation>();
 
         await foreach (Operation operation in _context.OperationHistoryRepository
-                           .FindByAccountIdAsync(account.Id, cancellationToken)
-                           .WithCancellation(cancellationToken))
+                           .FindByAccountIdAsync(account.Id, cancellationToken))
         {
             operations.Add(operation);
         }

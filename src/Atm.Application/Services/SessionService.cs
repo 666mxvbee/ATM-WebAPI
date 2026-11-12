@@ -46,8 +46,9 @@ public sealed class SessionService : ISessionService
         var session = new UserSession(Guid.NewGuid(), account.Id);
 
         await _context.UserSessionRepository.AddSessionAsync(
-            session,
-            cancellationToken);
+            [session],
+            cancellationToken)
+            .FirstAsync(cancellationToken);
 
         return new CreateUserSession.Response.Success(session.UserSessionMapToDto());
     }
@@ -64,8 +65,9 @@ public sealed class SessionService : ISessionService
         var session = new AdminSession(Guid.NewGuid());
 
         await _context.AdminSessionRepository.AddSessionAsync(
-            session,
-            cancellationToken);
+            [session],
+            cancellationToken)
+            .FirstAsync(cancellationToken);
 
         return new CreateAdminSession.Response.Success(session.AdminSessionMapToDto());
     }
