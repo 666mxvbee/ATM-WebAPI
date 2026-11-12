@@ -2,7 +2,7 @@
 using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Abstractions.Transactions;
 using Atm.Infrastructure.Persistence.Options;
-using Atm.Infrastructure.Persistence.RepositoriesInMemory;
+using Atm.Infrastructure.Persistence.Repositories;
 using Atm.Infrastructure.Persistence.Transactions;
 using FluentMigrator.Runner;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +27,8 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("PostgresConnectionOptions not found");
 
         string connectionString = postgresOptions.ToConnectionString();
+
+        collection.AddNpgsqlDataSource(connectionString);
 
         collection
             .AddFluentMigratorCore()
