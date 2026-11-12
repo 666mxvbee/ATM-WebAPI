@@ -1,35 +1,83 @@
 ﻿using Atm.Application.Abstractions.Repositories;
+using Atm.Application.Models.Accounts.ValueObjects;
 using Atm.Application.Models.Sessions;
-using System.Collections.Concurrent;
+using Npgsql;
+using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace Atm.Infrastructure.Persistence.Repositories;
 
-public sealed class UserSessionRepository : IUserSessionRepository
+internal class UserSessionRepository : IUserSessionRepository
 {
-    private readonly ConcurrentDictionary<Guid, UserSession> _values = new();
+    private readonly NpgsqlDataSource _dataSource;
 
-    public Task<UserSession> AddSessionAsync(
-        UserSession session,
-        CancellationToken cancellationToken)
+    public UserSessionRepository(NpgsqlDataSource dataSource)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (_values.TryAdd(session.SessionId, session) is false)
-        {
-            throw new InvalidOperationException("Session is already exists.");
-        }
-
-        return Task.FromResult(session);
+        _dataSource = dataSource;
     }
 
-    public Task<UserSession?> FindUserSessionByIdAsync(
+    public async IAsyncEnumerable<UserSession> AddSessionAsync(
+        IReadOnlyCollection<UserSession> session,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (session.Count == 0)
+        {
+            yield break;
+        }
+
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
+
+        const string sql = """
+                           INSERT INTO user_sessions (user_session_id, account_id)
+                           SELECT *
+                           FROM UNNEST(:user_session_ids, :account_ids)
+                           RETURNING user_session_id, account_id;
+                           """;
+
+        Guid[] userSessionsIds = [.. session.Select(x => x.SessionId)];
+        long[] accountIds = [.. session.Select(x => x.AccountId.Value)];
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("user_session_ids", userSessionsIds));
+        command.Parameters.Add(new NpgsqlParameter("account_ids", accountIds));
+
+        await using DbDataReader reader = await command
+            .ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            yield return new UserSession(
+                reader.GetGuid(0),
+                AccountId.Create(reader.GetInt64(1)));
+        }
+    }
+
+    public async Task<UserSession?> FindUserSessionByIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
 
-        _values.TryGetValue(sessionId, out UserSession? session);
+        const string sql = """
+                           SELECT *
+                           FROM user_sessions
+                           WHERE user_session_id = :session_id;
+                           """;
 
-        return Task.FromResult(session);
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("session_id", sessionId));
+        await using DbDataReader reader = await command
+            .ExecuteReaderAsync(cancellationToken);
+
+        if (await reader.ReadAsync(cancellationToken) is false)
+        {
+            return null;
+        }
+
+        return new UserSession(
+            reader.GetGuid(0),
+            AccountId.Create(reader.GetInt64(1)));
     }
 }
