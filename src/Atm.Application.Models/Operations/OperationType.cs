@@ -2,7 +2,7 @@
 
 public enum OperationType
 {
-    Deposit,
-    Withdraw,
-    ShowBalance,
+    Deposit = 0,
+    Withdraw = 1,
+    ShowBalance = 2,
 }

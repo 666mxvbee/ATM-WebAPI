@@ -4,8 +4,8 @@ namespace Atm.Application.Abstractions.Repositories;
 
 public interface IUserSessionRepository
 {
-    Task<UserSession> AddSessionAsync(
-        UserSession session,
+    IAsyncEnumerable<UserSession> AddSessionAsync(
+        IReadOnlyCollection<UserSession> session,
         CancellationToken cancellationToken);
 
     Task<UserSession?> FindUserSessionByIdAsync(

@@ -1,35 +1,78 @@
 ﻿using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Models.Sessions;
-using System.Collections.Concurrent;
+using Npgsql;
+using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace Atm.Infrastructure.Persistence.Repositories;
 
-public sealed class AdminSessionRepository : IAdminSessionRepository
+internal class AdminSessionRepository : IAdminSessionRepository
 {
-    private readonly ConcurrentDictionary<Guid, AdminSession> _values = new();
+    private readonly NpgsqlDataSource _dataSource;
 
-    public Task<AdminSession> AddSessionAsync(
-        AdminSession sessions,
-        CancellationToken cancellationToken)
+    public AdminSessionRepository(NpgsqlDataSource dataSource)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (_values.TryAdd(sessions.SessionId, sessions) is false)
-        {
-            throw new InvalidOperationException("Session already exists");
-        }
-
-        return Task.FromResult(sessions);
+        _dataSource = dataSource;
     }
 
-    public Task<AdminSession?> FindAdminSessionByIdAsync(
+    public async IAsyncEnumerable<AdminSession> AddSessionAsync(
+        IReadOnlyCollection<AdminSession> sessions,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (sessions.Count == 0)
+        {
+            yield break;
+        }
+
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
+
+        const string sql = """
+                           INSERT INTO admin_sessions (admin_session_id)
+                           SELECT *
+                           FROM UNNEST(:session_ids)
+                           RETURNING admin_session_id;
+                           """;
+
+        Guid[] ids = [.. sessions.Select(x => x.SessionId)];
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("session_ids", ids));
+
+        await using DbDataReader reader = await command
+            .ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            yield return new AdminSession(
+                reader.GetGuid(0));
+        }
+    }
+
+    public async Task<AdminSession?> FindAdminSessionByIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
 
-        _values.TryGetValue(sessionId, out AdminSession? session);
+        const string sql = """
+                           SELECT admin_session_id
+                           FROM admin_sessions
+                           WHERE admin_session_id = :session_id;
+                           """;
 
-        return Task.FromResult(session);
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("session_id", sessionId));
+        await using DbDataReader reader = await command
+            .ExecuteReaderAsync(cancellationToken);
+
+        if (await reader.ReadAsync(cancellationToken) is false)
+        {
+            return null;
+        }
+
+        return new AdminSession(
+            reader.GetGuid(0));
     }
 }

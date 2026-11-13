@@ -1,98 +1,155 @@
 ﻿using Atm.Application.Abstractions.Repositories;
 using Atm.Application.Models.Accounts;
 using Atm.Application.Models.Accounts.ValueObjects;
+using Npgsql;
+using System.Data.Common;
+using System.Runtime.CompilerServices;
 
 namespace Atm.Infrastructure.Persistence.Repositories;
 
-public sealed class AccountRepository : IAccountRepository
+internal class AccountRepository : IAccountRepository
 {
-    private readonly Dictionary<AccountId, Account> _values = [];
-    private readonly Lock _sync = new();
-    private long _lastId;
+    private readonly NpgsqlDataSource _dataSource;
 
-    public Task<Account> AddAccountAsync(
-        Account account,
-        CancellationToken cancellationToken)
+    public AccountRepository(NpgsqlDataSource dataSource)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        _dataSource = dataSource;
+    }
 
-        lock (_sync)
+    public async IAsyncEnumerable<Account> AddAccountAsync(
+        IReadOnlyCollection<Account> account,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (account.Count == 0)
         {
-            if (_values.Values.Any(x => x.Number == account.Number))
-            {
-                throw new InvalidOperationException(
-                    "Account number already exists");
-            }
+            yield break;
+        }
 
-            var savedAccount = Account.CreateFromDb(
-                AccountId.Create(++_lastId),
-                account.Number,
-                account.Pincode,
-                account.Balance);
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
 
-            _values.Add(savedAccount.Id, Copy(savedAccount));
+        const string sql = """
+                           INSERT INTO accounts (account_number, pincode, balance)
+                           SELECT input.account_number, input.pincode, input.balance
+                           FROM UNNEST(:account_numbers, :pincodes, :balances)
+                           AS input(account_number, pincode, balance)
+                           RETURNING account_id, account_number, pincode, balance;
+                           """;
 
-            return Task.FromResult(savedAccount);
+        Account[] accounts = [.. account];
+
+        string[] numbers = [.. accounts.Select(x => x.Number.Value)];
+        string[] pins = [.. accounts.Select(x => x.Pincode.Value)];
+        decimal[] balances = [.. accounts.Select(x => x.Balance.Value)];
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("account_numbers", numbers));
+        command.Parameters.Add(new NpgsqlParameter("pincodes", pins));
+        command.Parameters.Add(new NpgsqlParameter("balances", balances));
+
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            yield return MapReaderToAccount(reader);
         }
     }
 
-    public Task<Account?> FindAccountByIdAsync(
+    public async Task<Account?> FindAccountByIdAsync(
         AccountId accountId,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
 
-        lock (_sync)
+        const string sql = """
+                           SELECT account_id, account_number, pincode, balance
+                           FROM accounts
+                           WHERE account_id = :account_id;
+                           """;
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("account_id", accountId.Value));
+
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        if (await reader.ReadAsync(cancellationToken) is false)
         {
-            Account? result = _values.TryGetValue(accountId, out Account? account)
-                ? Copy(account)
-                : null;
-
-            return Task.FromResult(result);
+            return null;
         }
+
+        return MapReaderToAccount(reader);
     }
 
-    public Task<Account?> FindAccountByNumberAsync(
+    public async Task<Account?> FindAccountByNumberAsync(
         AccountNumber accountNumber,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
 
-        lock (_sync)
+        const string sql = """
+                           SELECT account_id, account_number, pincode, balance
+                           FROM accounts
+                           WHERE account_number = :account_number;
+                           """;
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("account_number", accountNumber.Value));
+
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        if (await reader.ReadAsync(cancellationToken) is false)
         {
-            Account? account = _values.Values
-                .FirstOrDefault(x => x.Number == accountNumber);
-
-            return Task.FromResult(
-                account is null ? null : Copy(account));
+            return null;
         }
+
+        return MapReaderToAccount(reader);
     }
 
-    public Task UpdateAccountAsync(
-        Account account,
-        CancellationToken cancellationToken)
+    public async IAsyncEnumerable<Account> UpdateAccountAsync(
+        IReadOnlyCollection<Account> account,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        lock (_sync)
+        if (account.Count == 0)
         {
-            if (!_values.ContainsKey(account.Id))
-            {
-                throw new InvalidOperationException("Account not found");
-            }
-
-            _values[account.Id] = Copy(account);
+            yield break;
         }
 
-        return Task.CompletedTask;
+        await using NpgsqlConnection connection = await _dataSource
+            .OpenConnectionAsync(cancellationToken);
+
+        const string sql = """
+                           UPDATE accounts AS target
+                           SET balance = input.balance
+                           FROM UNNEST(:account_ids, :balances)
+                           AS input(account_id, balance)
+                           WHERE target.account_id = input.account_id
+                           RETURNING target.account_id, target.account_number, target.pincode, target.balance;
+                           """;
+
+        Account[] accounts = [.. account];
+        long[] accountIds = [.. accounts.Select(x => x.Id.Value)];
+        decimal[] balances = [.. accounts.Select(x => x.Balance.Value)];
+
+        await using var command = new NpgsqlCommand(sql, connection);
+        command.Parameters.Add(new NpgsqlParameter("account_ids", accountIds));
+        command.Parameters.Add(new NpgsqlParameter("balances", balances));
+
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            yield return MapReaderToAccount(reader);
+        }
     }
 
-    private static Account Copy(Account account)
+    private static Account MapReaderToAccount(DbDataReader reader)
     {
         return Account.CreateFromDb(
-            account.Id,
-            account.Number,
-            account.Pincode,
-            account.Balance);
+            AccountId.Create(reader.GetInt64(0)),
+            AccountNumber.Create(reader.GetString(1)),
+            Pincode.Create(reader.GetString(2)),
+            Money.Create(reader.GetDecimal(3)));
     }
 }

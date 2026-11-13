@@ -5,8 +5,8 @@ namespace Atm.Application.Abstractions.Repositories;
 
 public interface IOperationHistoryRepository
 {
-    Task AddOperationAsync(
-        Operation operation,
+    IAsyncEnumerable<Operation> AddOperationAsync(
+        IReadOnlyCollection<Operation> operation,
         CancellationToken cancellationToken);
 
     IAsyncEnumerable<Operation> FindByAccountIdAsync(
